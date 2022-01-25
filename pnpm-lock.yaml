@@ -16,6 +16,7 @@ specifiers:
   react-dom: ^17.0.2
   react-router-dom: '6'
   react-use: ^17.3.2
+  swr: ^1.1.2
   the-new-css-reset: ^1.4.5
   typescript: ^4.5.5
   ulid: ^2.3.0
@@ -28,6 +29,7 @@ dependencies:
   react-dom: 17.0.2_react@17.0.2
   react-router-dom: 6.2.1_react-dom@17.0.2+react@17.0.2
   react-use: 17.3.2_react-dom@17.0.2+react@17.0.2
+  swr: 1.1.2_react@17.0.2
   the-new-css-reset: 1.4.5
   ulid: 2.3.0
 
@@ -1734,6 +1736,14 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
     dev: true
+
+  /swr/1.1.2_react@17.0.2:
+    resolution: {integrity: sha512-UsM0eo5T+kRPyWFZtWRx2XR5qzohs/LS4lDC0GCyLpCYFmsfTk28UCVDbOE9+KtoXY4FnwHYiF+ZYEU3hnJ1lQ==}
+    peerDependencies:
+      react: ^16.11.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      react: 17.0.2
+    dev: false
 
   /the-new-css-reset/1.4.5:
     resolution: {integrity: sha512-PBhUTzlkt4paxn/75ckm5t7zeedhcduSzpWgUIfd+favXbJg0eRVkO4kb7KwXUYbmfwteqH+R6XqsqnFmSzywA==}

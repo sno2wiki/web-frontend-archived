@@ -11,7 +11,10 @@ import {
 export type Line = { lineId: string; text: string };
 export type Lines = Line[];
 
-export const Document: React.VFC<{ init: Lines }> = ({ init }) => {
+export const Document: React.VFC<{
+  initLines: Lines;
+  handleMethod(data: CaptureData): void;
+}> = ({ initLines: init, handleMethod }) => {
   const [cursor, setCursor] = useState<{ line: string; index: number }>({
     line: "first",
     index: -1,
@@ -64,7 +67,7 @@ export const Document: React.VFC<{ init: Lines }> = ({ init }) => {
   };
 
   const handleCapture = (data: CaptureData) => {
-    console.dir(data);
+    handleMethod(data);
     switch (data.method) {
       case "FOCUS":
         handleFocus(data.payload);
