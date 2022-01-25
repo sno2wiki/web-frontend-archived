@@ -9,10 +9,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "nanoid": "^3.2.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-use": "^17.3.2",
-    "the-new-css-reset": "^1.4.5"
+    "the-new-css-reset": "^1.4.5",
+    "ulid": "^2.3.0"
   },
   "devDependencies": {
     "@swc/core": "^1.2.133",

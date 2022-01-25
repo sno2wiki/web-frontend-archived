@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { createLineId } from "~/generators/id";
 import { Line } from "./Line";
 import {
   BreakPayload,
@@ -40,7 +41,7 @@ export const Document: React.VFC<{ init: Lines }> = ({ init }) => {
   };
 
   const handleBreak = (payload: BreakPayload) => {
-    const newLineId = Math.random().toString(23).slice(2);
+    const newLineId = createLineId();
     setLines(() =>
       linesBuffer
         .map((line) =>

@@ -10,20 +10,24 @@ specifiers:
   '@types/react-dom': ^17.0.11
   '@vitejs/plugin-react': ^1.1.0
   dprint: ^0.20.0
+  nanoid: ^3.2.0
   npm-run-all: ^4.1.5
   react: ^17.0.2
   react-dom: ^17.0.2
   react-use: ^17.3.2
   the-new-css-reset: ^1.4.5
   typescript: ^4.5.5
+  ulid: ^2.3.0
   vite: ^2.6.14
   vite-tsconfig-paths: ^3.3.17
 
 dependencies:
+  nanoid: 3.2.0
   react: 17.0.2
   react-dom: 17.0.2_react@17.0.2
   react-use: 17.3.2_react-dom@17.0.2+react@17.0.2
   the-new-css-reset: 1.4.5
+  ulid: 2.3.0
 
 devDependencies:
   '@swc/core': 1.2.133
@@ -1289,7 +1293,6 @@ packages:
     resolution: {integrity: sha512-fmsZYa9lpn69Ad5eDn7FMcnnSR+8R34W9qJEijxYhTbfOWzr22n1QxCMzXLK+ODyW2973V3Fux959iQoUxzUIA==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
-    dev: true
 
   /nice-try/1.0.5:
     resolution: {integrity: sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==}
@@ -1747,6 +1750,11 @@ packages:
     engines: {node: '>=4.2.0'}
     hasBin: true
     dev: true
+
+  /ulid/2.3.0:
+    resolution: {integrity: sha512-keqHubrlpvT6G2wH0OEfSW4mquYRcbe/J8NMmveoQOjUqmo+hXtO+ORCpWhdbZ7k72UtY61BL7haGxW6enBnjw==}
+    hasBin: true
+    dev: false
 
   /unbox-primitive/1.0.1:
     resolution: {integrity: sha512-tZU/3NqK3dA5gpE1KtyiJUrEB0lxnGkMFHptJ7q6ewdZ8s12QrODwNbhIJStmJkd1QDXa1NRA8aF2A1zk/Ypyw==}
