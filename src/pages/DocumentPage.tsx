@@ -1,15 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Document, Lines } from "~/components/Document";
-import { CaptureData } from "~/components/types";
+import { Document } from "~/components/Document";
 import { createCommitId } from "~/generators/id";
+import { DocumentType, EditData } from "~/types";
 
 export const calcDocumentEditEndpoint = (id: string) =>
   "ws://0.0.0.0:8000/docs/" + id + "/edit";
-
-export type Document = {
-  lines: Lines;
-};
 
 export const useEdit = (
   endpoint: string | undefined
@@ -20,12 +16,12 @@ export const useEdit = (
     }
   | {
       ready: true;
-      document: Document;
-      sendCommit: (payload: CaptureData) => void;
+      document: DocumentType;
+      sendCommit: (editData: EditData) => void;
     } => {
   const wsRef = useRef<WebSocket>();
 
-  const [document, setDocuments] = useState<Document>();
+  const [document, setDocuments] = useState<DocumentType>();
   const [previousCommit, setPreviousCommit] = useState<{ commmitId: string }>();
 
   useEffect(() => {
@@ -42,7 +38,7 @@ export const useEdit = (
     });
   }, [endpoint]);
 
-  const sendCommit = (payload: CaptureData) => {
+  const sendCommit = (payload: EditData) => {
     if (!wsRef.current) return;
     if (!previousCommit) return;
 

@@ -1,19 +1,17 @@
 import React, { useState } from "react";
 import { createLineId } from "~/generators/id";
-import { Line } from "./Line";
 import {
   BreakPayload,
-  CaptureData,
+  EditData,
   FocusPayload,
   InsertPayload,
-} from "./types";
-
-export type Line = { lineId: string; text: string };
-export type Lines = Line[];
+  Lines,
+} from "~/types";
+import { Line } from "./Line";
 
 export const Document: React.VFC<{
   initLines: Lines;
-  handleMethod(data: CaptureData): void;
+  handleMethod(data: EditData): void;
 }> = ({ initLines: init, handleMethod }) => {
   const [cursor, setCursor] = useState<{ line: string; index: number }>({
     line: "first",
@@ -66,7 +64,7 @@ export const Document: React.VFC<{
     setCursor({ line: newLineId, index: 0 });
   };
 
-  const handleCapture = (data: CaptureData) => {
+  const handleCapture = (data: EditData) => {
     handleMethod(data);
     switch (data.method) {
       case "FOCUS":

@@ -1,13 +1,13 @@
 import React, { useMemo } from "react";
+import { EditData } from "~/types";
 import { Char } from "./Char";
 import { Input } from "./Input";
-import { CaptureData } from "./types";
 
 export const Line: React.VFC<{
   lineId: string;
   text: string;
   cursor: null | number;
-  handleCapture: (data: CaptureData) => void;
+  handleCapture: (data: EditData) => void;
 }> = ({ lineId, text, handleCapture, cursor }) => {
   const chars = useMemo(
     () => [
@@ -47,16 +47,17 @@ export const Line: React.VFC<{
                 });
               }}
               onPressBackspace={() => {
-                if (cursor === 0)
+                if (cursor === 0) {
                   handleCapture({
                     method: "FOLD",
                     payload: { lineId },
                   });
-                else
+                } else {
                   handleCapture({
                     method: "DELETE",
                     payload: { lineId, index: index },
                   });
+                }
               }}
             ></Input>
           )}
