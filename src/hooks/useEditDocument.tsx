@@ -1,26 +1,36 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createCommitId } from "~/generators/id";
-import { DocumentType, EditData } from "~/types";
+import { DocumentType, EditData, Lines } from "~/types";
 
 export const calcDocumentEditEndpoint = (id: string) =>
   "ws://0.0.0.0:8000/docs/" + id + "/edit";
 
+export type JoinCommitType = {
+  type: "JOIN";
+  previousId: string;
+  id: string;
+};
+export type EditCommitType = {
+  type: "EDIT";
+  previousId: string;
+  id: string;
+};
+export type CommitType = JoinCommitType | EditCommitType;
+
 export const useEditDocument = (
   endpoint: string | undefined
 ):
-  | {
-      ready: false;
-      document: undefined;
-    }
+  | { ready: false }
   | {
       ready: true;
-      document: DocumentType;
       sendCommit: (editData: EditData) => void;
+      lines: Lines;
+      latestCommit: CommitType;
     } => {
   const wsRef = useRef<WebSocket>();
 
-  const [document, setDocuments] = useState<DocumentType>();
-  const [previousCommit, setPreviousCommit] = useState<{ commmitId: string }>();
+  const [lines, setLines] = useState<Lines>();
+  const [commits, setCommits] = useState<CommitType[]>([]);
 
   useEffect(() => {
     if (!endpoint) return;
@@ -31,39 +41,42 @@ export const useEditDocument = (
 
       if (data.method === "INIT") {
         const payload = data.payload;
-        setDocuments(payload.document);
-        setPreviousCommit(payload.latestCommit);
+
+        setLines(payload.lines);
+
+        const joinCommit: JoinCommitType = {
+          type: "JOIN",
+          previousId: payload.latestCommit.commitId,
+          id: createCommitId(),
+        };
+        setCommits((previousCommits) => [joinCommit, ...previousCommits]);
       }
     });
   }, [endpoint]);
 
   const sendCommit = (payload: EditData) => {
     if (!wsRef.current) return;
-    if (!previousCommit) return;
 
-    const previousCommitId = previousCommit.commmitId;
-    const newCommitId = createCommitId();
+    const editCommit: EditCommitType = {
+      type: "EDIT",
+      previousId: commits[0].id,
+      id: createCommitId(),
+    };
+    setCommits((previousCommits) => [editCommit, ...previousCommits]);
 
-    wsRef.current.send(
-      JSON.stringify({
-        previousCommitId: previousCommitId,
-        newCommitId,
-        payload,
-      })
-    );
-    setPreviousCommit(() => ({ commmitId: newCommitId }));
+    wsRef.current.send(JSON.stringify(editCommit));
   };
 
-  if (!!wsRef.current && !!document && !!previousCommit) {
+  if (!!wsRef.current && lines && commits.length !== 0) {
     return {
       ready: true,
-      document,
       sendCommit: sendCommit,
+      lines: lines,
+      latestCommit: commits[0],
     };
   } else {
     return {
       ready: false,
-      document: undefined,
     };
   }
 };
