@@ -1,18 +1,20 @@
 import { useParams } from "react-router-dom";
 import { useAuth } from "~/auth/useAuth";
 import { Document } from "~/components/Document";
-import { useEditDocument } from "~/hooks/useEditDocument";
+import { useDocumentEditor as useDocumentEditor } from "~/hooks/useDocumentEditor";
 
 export const EditableDocument: React.VFC<{
   documentId: string;
   userId: string;
 }> = ({ documentId: documentId, userId: userId }) => {
-  const edit = useEditDocument({ documentId, userId });
+  const edit = useDocumentEditor({ documentId, userId });
 
   return (
     <>
       {edit.ready && (
         <>
+          {edit.offline && <p>Offline</p>}
+          {!edit.offline && <p>Online</p>}
           <Document
             initLines={edit.lines}
             handleMethod={edit.sendCommit}

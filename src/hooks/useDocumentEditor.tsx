@@ -19,7 +19,7 @@ export type EditCommitType = {
 };
 export type CommitType = JoinCommitType | EditCommitType;
 
-export const useEditDocument = ({
+export const useDocumentEditor = ({
   documentId,
   userId,
 }: {
@@ -32,6 +32,7 @@ export const useEditDocument = ({
       sendCommit: (editData: EditData) => void;
       lines: Lines;
       latestCommit: CommitType;
+      offline: boolean;
     } => {
   const wsRef = useRef<WebSocket>();
 
@@ -81,6 +82,7 @@ export const useEditDocument = ({
       sendCommit: sendCommit,
       lines: lines,
       latestCommit: commits[0],
+      offline: wsRef.current?.readyState !== WebSocket.OPEN,
     };
   } else {
     return {
