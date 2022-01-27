@@ -31,12 +31,15 @@ export const useDocumentEditor = ({
       ready: true;
       sendCommit: (editData: EditData) => void;
       lines: Lines;
-      latestCommit: CommitType;
       online: boolean;
+      unsynced: boolean;
     } => {
   const wsRef = useRef<WebSocket>();
   const wsMonitorRef = useRef<NodeJS.Timer>();
   const [online, setOnline] = useState(false);
+
+  const syncCommitsTimeoutRef = useRef<NodeJS.Timer>();
+  const [unsynced, setUnsynched] = useState(false);
 
   const [lines, setLines] = useState<Lines>();
   const [commits, setCommits] = useState<CommitType[]>([]);
@@ -51,7 +54,7 @@ export const useDocumentEditor = ({
       wsMonitorRef.current = setInterval(() => {
         if (wsRef.current && wsRef.current.readyState !== WebSocket.OPEN)
           setOnline(false);
-      }, 1000);
+      }, 250);
     });
     wsRef.current.addEventListener("message", (event) => {
       const data = JSON.parse(event.data);
@@ -73,8 +76,6 @@ export const useDocumentEditor = ({
   }, [documentId, userId, online]);
 
   const sendCommit = (payload: EditData) => {
-    if (!wsRef.current) return;
-
     const editCommit: EditCommitType = {
       type: "EDIT",
       commitId: createCommitId(),
@@ -83,7 +84,17 @@ export const useDocumentEditor = ({
     };
     setCommits((previousCommits) => [editCommit, ...previousCommits]);
 
-    wsRef.current.send(JSON.stringify(editCommit));
+    if (syncCommitsTimeoutRef.current)
+      clearTimeout(syncCommitsTimeoutRef.current);
+    setUnsynched(true);
+    syncCommitsTimeoutRef.current = setTimeout(() => {
+      if (wsRef.current) {
+        wsRef.current.send(
+          JSON.stringify({ method: "SYNC_COMMITS", payload: { commits } })
+        );
+        setUnsynched(false);
+      }
+    }, 1000);
   };
 
   if (!!wsRef.current && lines && commits.length !== 0) {
@@ -91,8 +102,8 @@ export const useDocumentEditor = ({
       ready: true,
       sendCommit: sendCommit,
       lines: lines,
-      latestCommit: commits[0],
       online: online,
+      unsynced: unsynced,
     };
   } else {
     return {
