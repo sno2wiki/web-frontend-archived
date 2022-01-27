@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createCommitId } from "~/generators/id";
-import { DocumentType, EditData, Lines } from "~/types";
+import { EditData, Lines } from "~/types";
 
 export const calcDocumentEditEndpoint = (id: string) =>
   "ws://0.0.0.0:8000/docs/" + id + "/edit";
@@ -32,17 +32,27 @@ export const useDocumentEditor = ({
       sendCommit: (editData: EditData) => void;
       lines: Lines;
       latestCommit: CommitType;
-      offline: boolean;
+      online: boolean;
     } => {
   const wsRef = useRef<WebSocket>();
+  const wsMonitorRef = useRef<NodeJS.Timer>();
+  const [online, setOnline] = useState(false);
 
   const [lines, setLines] = useState<Lines>();
   const [commits, setCommits] = useState<CommitType[]>([]);
 
   useEffect(() => {
     if (wsRef.current) wsRef.current.close();
+    if (wsMonitorRef.current) clearInterval(wsMonitorRef.current);
 
     wsRef.current = new WebSocket(calcDocumentEditEndpoint(documentId));
+    wsRef.current.addEventListener("open", () => {
+      setOnline(true);
+      wsMonitorRef.current = setInterval(() => {
+        if (wsRef.current && wsRef.current.readyState !== WebSocket.OPEN)
+          setOnline(false);
+      }, 1000);
+    });
     wsRef.current.addEventListener("message", (event) => {
       const data = JSON.parse(event.data);
 
@@ -60,7 +70,7 @@ export const useDocumentEditor = ({
         setCommits((previousCommits) => [joinCommit, ...previousCommits]);
       }
     });
-  }, [documentId, userId]);
+  }, [documentId, userId, online]);
 
   const sendCommit = (payload: EditData) => {
     if (!wsRef.current) return;
@@ -82,7 +92,7 @@ export const useDocumentEditor = ({
       sendCommit: sendCommit,
       lines: lines,
       latestCommit: commits[0],
-      offline: wsRef.current?.readyState !== WebSocket.OPEN,
+      online: online,
     };
   } else {
     return {

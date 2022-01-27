@@ -13,8 +13,8 @@ export const EditableDocument: React.VFC<{
     <>
       {edit.ready && (
         <>
-          {edit.offline && <p>Offline</p>}
-          {!edit.offline && <p>Online</p>}
+          {edit.online && <p>Online</p>}
+          {!edit.online && <p>Offline</p>}
           <Document
             initLines={edit.lines}
             handleMethod={edit.sendCommit}
