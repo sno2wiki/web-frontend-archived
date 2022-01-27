@@ -1,24 +1,41 @@
 import { useParams } from "react-router-dom";
+import { useAuth } from "~/auth/useAuth";
 import { Document } from "~/components/Document";
-import {
-  useEditDocument,
-  calcDocumentEditEndpoint,
-} from "~/hooks/useEditDocument";
+import { useEditDocument } from "~/hooks/useEditDocument";
 
-export const DocumentPage: React.VFC = () => {
-  const { id } = useParams<"id">();
-  const edit = useEditDocument(id ? calcDocumentEditEndpoint(id) : undefined);
+export const EditableDocument: React.VFC<{
+  documentId: string;
+  userId: string;
+}> = ({ documentId: documentId, userId: userId }) => {
+  const edit = useEditDocument({ documentId, userId });
 
   return (
-    <div style={{ margin: "64px 64px" }}>
-      <span>{id}</span>
+    <>
       {edit.ready && (
         <>
-          <p style={{ fontFamily: "monospace" }}>{edit.latestCommit.id}</p>
           <Document
             initLines={edit.lines}
             handleMethod={edit.sendCommit}
           ></Document>
+        </>
+      )}
+    </>
+  );
+};
+
+export const DocumentPage: React.VFC = () => {
+  const { id } = useParams<"id">();
+  const user = useAuth();
+
+  return (
+    <div style={{ margin: "64px 64px" }}>
+      <span>{id}</span>
+      {id && user && (
+        <>
+          <EditableDocument
+            documentId={id}
+            userId={user.userId}
+          ></EditableDocument>
         </>
       )}
     </div>

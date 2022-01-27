@@ -7,19 +7,25 @@ export const calcDocumentEditEndpoint = (id: string) =>
 
 export type JoinCommitType = {
   type: "JOIN";
-  previousId: string;
-  id: string;
+  commitId: string;
+  previousCommitId: string;
+  userId: string;
 };
 export type EditCommitType = {
   type: "EDIT";
+  commitId: string;
   previousId: string;
-  id: string;
+  userId: string;
 };
 export type CommitType = JoinCommitType | EditCommitType;
 
-export const useEditDocument = (
-  endpoint: string | undefined
-):
+export const useEditDocument = ({
+  documentId,
+  userId,
+}: {
+  documentId: string;
+  userId: string;
+}):
   | { ready: false }
   | {
       ready: true;
@@ -33,9 +39,9 @@ export const useEditDocument = (
   const [commits, setCommits] = useState<CommitType[]>([]);
 
   useEffect(() => {
-    if (!endpoint) return;
+    if (wsRef.current) wsRef.current.close();
 
-    wsRef.current = new WebSocket(endpoint);
+    wsRef.current = new WebSocket(calcDocumentEditEndpoint(documentId));
     wsRef.current.addEventListener("message", (event) => {
       const data = JSON.parse(event.data);
 
@@ -46,21 +52,23 @@ export const useEditDocument = (
 
         const joinCommit: JoinCommitType = {
           type: "JOIN",
-          previousId: payload.latestCommit.commitId,
-          id: createCommitId(),
+          commitId: createCommitId(),
+          previousCommitId: payload.latestCommit.commitId,
+          userId,
         };
         setCommits((previousCommits) => [joinCommit, ...previousCommits]);
       }
     });
-  }, [endpoint]);
+  }, [documentId, userId]);
 
   const sendCommit = (payload: EditData) => {
     if (!wsRef.current) return;
 
     const editCommit: EditCommitType = {
       type: "EDIT",
-      previousId: commits[0].id,
-      id: createCommitId(),
+      commitId: createCommitId(),
+      previousId: commits[0].commitId,
+      userId,
     };
     setCommits((previousCommits) => [editCommit, ...previousCommits]);
 
