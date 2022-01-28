@@ -11,6 +11,11 @@ export const EditableDocument: React.VFC<{
 
   return (
     <>
+      {!edit.ready && (
+        <>
+          <p>Loading</p>
+        </>
+      )}
       {edit.ready && (
         <>
           <p>{edit.online ? "Online" : "Offline"}</p>
