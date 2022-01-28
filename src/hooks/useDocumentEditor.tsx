@@ -16,6 +16,7 @@ export type EditCommitType = {
   commitId: string;
   previousId: string;
   userId: string;
+  data: EditData;
 };
 export type CommitType = JoinCommitType | EditCommitType;
 
@@ -52,25 +53,19 @@ export const useDocumentEditor = ({
     wsRef.current.addEventListener("open", () => {
       setOnline(true);
       wsMonitorRef.current = setInterval(() => {
-        if (wsRef.current && wsRef.current.readyState !== WebSocket.OPEN)
+        if (wsRef.current && wsRef.current.readyState !== WebSocket.OPEN) {
           setOnline(false);
+        }
       }, 250);
     });
     wsRef.current.addEventListener("message", (event) => {
       const data = JSON.parse(event.data);
 
-      if (data.method === "INIT") {
+      if (data.method === "SYNC_DOCUMENT") {
         const payload = data.payload;
 
         setLines(payload.lines);
-
-        const joinCommit: JoinCommitType = {
-          type: "JOIN",
-          commitId: createCommitId(),
-          previousCommitId: payload.latestCommit.commitId,
-          userId,
-        };
-        setCommits((previousCommits) => [joinCommit, ...previousCommits]);
+        setCommits(() => [payload.latestCommit]);
       }
     });
   }, [documentId, userId, online]);
@@ -81,20 +76,22 @@ export const useDocumentEditor = ({
       commitId: createCommitId(),
       previousId: commits[0].commitId,
       userId,
+      data: payload,
     };
-    setCommits((previousCommits) => [editCommit, ...previousCommits]);
+    setCommits((previousCommits) => [...previousCommits, editCommit]);
 
-    if (syncCommitsTimeoutRef.current)
+    if (syncCommitsTimeoutRef.current) {
       clearTimeout(syncCommitsTimeoutRef.current);
+    }
     setUnsynched(true);
     syncCommitsTimeoutRef.current = setTimeout(() => {
       if (wsRef.current) {
         wsRef.current.send(
-          JSON.stringify({ method: "SYNC_COMMITS", payload: { commits } })
+          JSON.stringify({ method: "PUSH_COMMITS", payload: { commits } })
         );
         setUnsynched(false);
       }
-    }, 1000);
+    }, 250);
   };
 
   if (!!wsRef.current && lines && commits.length !== 0) {
