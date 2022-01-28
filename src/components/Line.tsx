@@ -17,6 +17,13 @@ export const Line: React.VFC<{
     [text]
   );
 
+  const handleClickEnd = () => {
+    handleCapture({
+      method: "FOCUS",
+      payload: { lineId, index: text.length },
+    });
+  };
+
   const handleClick = (index: number, positionX: "LEFTER" | "RIGHTER") => {
     handleCapture({
       method: "FOCUS",
@@ -25,9 +32,20 @@ export const Line: React.VFC<{
   };
 
   return (
-    <div id={lineId} style={{ cursor: "text" }}>
+    <div id={lineId} style={{ cursor: "text", position: "relative" }}>
+      <div
+        onClick={() => handleClickEnd()}
+        style={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 0,
+        }}
+      ></div>
       {chars.map(({ char, index }) => (
-        <span key={index} style={{ display: "inline-block" }}>
+        <span
+          key={index}
+          style={{ zIndex: 1, position: "relative", display: "inline-block" }}
+        >
           <Char
             char={char}
             onClick={(positionX) => handleClick(index, positionX)}
