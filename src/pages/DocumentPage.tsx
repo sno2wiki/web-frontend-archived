@@ -19,9 +19,9 @@ export const EditableDocument: React.VFC<{
       {edit.ready && (
         <>
           <p>{edit.online ? "Online" : "Offline"}</p>
-          <p>{edit.unsynced ? "Unsynced" : "Synched"}</p>
+          <p>{edit.synced ? "Synched" : "Unsynced"}</p>
           <Document
-            initLines={edit.lines}
+            lines={edit.lines}
             handleMethod={edit.sendCommit}
           ></Document>
         </>

@@ -29,18 +29,18 @@ export const useDocumentEditor = ({
 }):
   | { ready: false }
   | {
-      ready: true;
-      sendCommit: (editData: EditData) => void;
-      lines: Lines;
-      online: boolean;
-      unsynced: boolean;
-    } => {
+    ready: true;
+    sendCommit: (editData: EditData) => void;
+    lines: Lines;
+    online: boolean;
+    synced: boolean;
+  } => {
   const wsRef = useRef<WebSocket>();
   const wsMonitorRef = useRef<NodeJS.Timer>();
   const [online, setOnline] = useState(false);
 
   const syncCommitsTimeoutRef = useRef<NodeJS.Timer>();
-  const [unsynced, setUnsynched] = useState(false);
+  const [synced, setSynced] = useState(false);
 
   const [lines, setLines] = useState<Lines>();
   const [commits, setCommits] = useState<CommitType[]>([]);
@@ -61,11 +61,16 @@ export const useDocumentEditor = ({
     wsRef.current.addEventListener("message", (event) => {
       const data = JSON.parse(event.data);
 
-      if (data.method === "SYNC_DOCUMENT") {
-        const payload = data.payload;
 
-        setLines(payload.lines);
-        setCommits(() => [payload.latestCommit]);
+      if (data.method === "PULL_DOCUMENT") {
+        const payload = data.payload;
+        const document = payload.document;
+
+        console.dir(document)
+
+        setSynced(true);
+        setLines(document.lines);
+        setCommits(() => [{ commitId: document.latestCommitId }]);
       }
     });
   }, [documentId, userId, online]);
@@ -83,13 +88,13 @@ export const useDocumentEditor = ({
     if (syncCommitsTimeoutRef.current) {
       clearTimeout(syncCommitsTimeoutRef.current);
     }
-    setUnsynched(true);
+    setSynced(false);
     syncCommitsTimeoutRef.current = setTimeout(() => {
       if (wsRef.current) {
         wsRef.current.send(
           JSON.stringify({ method: "PUSH_COMMITS", payload: { commits } })
         );
-        setUnsynched(false);
+        setSynced(true);
       }
     }, 250);
   };
@@ -100,7 +105,7 @@ export const useDocumentEditor = ({
       sendCommit: sendCommit,
       lines: lines,
       online: online,
-      unsynced: unsynced,
+      synced: synced,
     };
   } else {
     return {
