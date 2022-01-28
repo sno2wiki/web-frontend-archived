@@ -14,8 +14,8 @@ export const Document: React.VFC<{
   handleMethod(data: EditData): void;
 }> = ({ initLines: init, handleMethod }) => {
   const [cursor, setCursor] = useState<{ line: string; index: number }>({
-    line: "first",
-    index: -1,
+    line: init[0].lineId,
+    index: 0,
   });
   const [lines, setLines] = useState<Lines>(init);
   const [linesBuffer, setLinesBuffer] = useState<Lines>(init);
