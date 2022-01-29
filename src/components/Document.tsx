@@ -10,9 +10,9 @@ import {
 import { Line } from "./Line";
 
 export const Document: React.VFC<{
-  initLines: Lines;
+  lines: Lines;
   handleMethod(data: EditData): void;
-}> = ({ initLines: init, handleMethod }) => {
+}> = ({ lines: init, handleMethod }) => {
   const [cursor, setCursor] = useState<{ line: string; index: number }>({
     line: init[0].lineId,
     index: 0,
@@ -21,24 +21,26 @@ export const Document: React.VFC<{
   const [linesBuffer, setLinesBuffer] = useState<Lines>(init);
 
   const handleFocus = (payload: FocusPayload) => {
-    setLines(() => linesBuffer);
     setCursor({ line: payload.lineId, index: payload.index });
   };
 
   const handleInsert = (payload: InsertPayload) => {
-    setLinesBuffer(() =>
-      lines.map((previousLine) =>
-        previousLine.lineId === payload.lineId
+    setLines((previous) =>
+      previous.map((line) =>
+        line.lineId === payload.lineId
           ? {
-              ...previousLine,
-              text:
-                previousLine.text.slice(0, Math.max(0, payload.index)) +
-                payload.text +
-                previousLine.text.slice(Math.max(0, payload.index)),
+              ...line,
+              text: `${line.text.slice(0, payload.index)}${
+                payload.text
+              }${line.text.slice(payload.index)}`,
             }
-          : previousLine
+          : line
       )
     );
+    setCursor((previous) => ({
+      ...previous,
+      index: previous.index + payload.text.length,
+    }));
   };
 
   const handleBreak = (payload: BreakPayload) => {
@@ -65,15 +67,16 @@ export const Document: React.VFC<{
   };
 
   const handleCapture = (data: EditData) => {
-    handleMethod(data);
     switch (data.method) {
       case "FOCUS":
         handleFocus(data.payload);
         break;
       case "INSERT":
+        handleMethod(data);
         handleInsert(data.payload);
         break;
       case "BREAK":
+        handleMethod(data);
         handleBreak(data.payload);
         break;
     }
