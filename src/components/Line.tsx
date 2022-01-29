@@ -1,5 +1,12 @@
 import React, { useMemo } from "react";
-import { EditData } from "~/types";
+import {
+  BreakPayload,
+  DeletePayload,
+  EditData,
+  FocusPayload,
+  FoldPayload,
+  InsertPayload,
+} from "~/types";
 import { Char } from "./Char";
 import { Input } from "./Input";
 
@@ -7,8 +14,21 @@ export const Line: React.VFC<{
   lineId: string;
   text: string;
   cursor: null | number;
-  handleCapture: (data: EditData) => void;
-}> = ({ lineId, text, handleCapture, cursor }) => {
+  handleFocus(payload: FocusPayload): void;
+  handleInsert(payload: InsertPayload): void;
+  handleBreak(payload: BreakPayload): void;
+  handleFold(payload: FoldPayload): void;
+  handleDelete(payload: DeletePayload): void;
+}> = ({
+  lineId,
+  text,
+  cursor,
+  handleFocus,
+  handleBreak,
+  handleInsert,
+  handleDelete,
+  handleFold,
+}) => {
   const chars = useMemo(
     () => [
       { char: "", index: 0 },
@@ -18,17 +38,11 @@ export const Line: React.VFC<{
   );
 
   const handleClickEnd = () => {
-    handleCapture({
-      method: "FOCUS",
-      payload: { lineId, index: text.length },
-    });
+    handleFocus({ lineId, index: text.length });
   };
 
   const handleClick = (index: number, positionX: "LEFTER" | "RIGHTER") => {
-    handleCapture({
-      method: "FOCUS",
-      payload: { lineId, index: positionX === "LEFTER" ? index - 1 : index },
-    });
+    handleFocus({ lineId, index: positionX === "LEFTER" ? index - 1 : index });
   };
 
   return (
@@ -53,29 +67,14 @@ export const Line: React.VFC<{
           {cursor === index && (
             <Input
               onChange={(text) =>
-                handleCapture({
-                  method: "INSERT",
-                  payload: { lineId, text: text, index: index },
-                })
+                handleInsert({ lineId, text: text, index: index })
               }
               onPressEnter={(offset) => {
-                handleCapture({
-                  method: "BREAK",
-                  payload: { lineId, index: index + offset },
-                });
+                handleBreak({ lineId, index: index + offset });
               }}
               onPressBackspace={() => {
-                if (cursor === 0) {
-                  handleCapture({
-                    method: "FOLD",
-                    payload: { lineId },
-                  });
-                } else {
-                  handleCapture({
-                    method: "DELETE",
-                    payload: { lineId, index: index },
-                  });
-                }
+                if (cursor === 0) handleFold({ lineId });
+                else handleDelete({ lineId, index });
               }}
             ></Input>
           )}

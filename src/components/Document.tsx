@@ -52,6 +52,7 @@ export const Document: React.VFC<{
       ...previous,
       index: previous.index + payload.text.length,
     }));
+    handleMethod({ method: "INSERT", payload });
   };
 
   const handleBreak = (payload: BreakPayload) => {
@@ -75,22 +76,7 @@ export const Document: React.VFC<{
         .flat()
     );
     setCursor({ line: newLineId, index: 0 });
-  };
-
-  const handleCapture = (data: EditData) => {
-    switch (data.method) {
-      case "FOCUS":
-        handleFocus(data.payload);
-        break;
-      case "INSERT":
-        handleMethod(data);
-        handleInsert(data.payload);
-        break;
-      case "BREAK":
-        handleMethod(data);
-        handleBreak(data.payload);
-        break;
-    }
+    handleMethod({ method: "BREAK", payload });
   };
 
   return (
@@ -101,7 +87,11 @@ export const Document: React.VFC<{
           lineId={lineId}
           text={text}
           cursor={lineId === cursor.line ? cursor.index : null}
-          handleCapture={handleCapture}
+          handleFocus={handleFocus}
+          handleInsert={handleInsert}
+          handleDelete={() => {}}
+          handleBreak={handleBreak}
+          handleFold={() => {}}
         ></Line>
       ))}
     </div>
