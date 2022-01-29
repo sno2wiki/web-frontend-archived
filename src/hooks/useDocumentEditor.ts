@@ -19,7 +19,8 @@ export const useDocumentEditor = ({
     synced: boolean;
     lines: { lineId: string; nextLineId: string; text: string; }[];
     pushCommit(editData: EditData): void;
-  } => {
+  } =>
+{
   const wsRef = useRef<WebSocket>();
   const wsMonitorRef = useRef<NodeJS.Timer>();
   const [online, setOnline] = useState(false);

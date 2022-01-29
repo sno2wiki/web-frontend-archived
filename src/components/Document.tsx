@@ -1,96 +1,70 @@
 import React, { useEffect, useMemo, useState } from "react";
 
 import { createLineId } from "~/generators/id";
-import {
-  BreakPayload,
-  EditData,
-  FocusPayload,
-  InsertPayload,
-  Lines,
-  LineType,
-} from "~/types";
+import { EditData, Lines, LineType } from "~/types";
 
 import { Line } from "./Line";
 
-export const sortLines = (lines: LineType[]): LineType[] => {
+export const sortLines = (
+  lines: { lineId: string; nextLineId: string | null; text: string; }[],
+): { lineId: string; text: string; }[] => {
   return lines;
 };
 
 export const Document: React.VFC<{
   storedLines: Lines;
   synced: boolean;
-  handleMethod(data: EditData): void;
-}> = ({ storedLines: storedLines, handleMethod, synced: synced }) => {
+  pushCommit(data: EditData): void;
+}> = ({
+  storedLines: storedLines,
+  pushCommit: handleMethod,
+  synced: synced,
+}) => {
   const [focusLine, setFocusLine] = useState<string | null>(null);
-  const [localLines, setLocalLines] = useState<Lines>(storedLines);
+  const [localLines, setLocalLines] = useState<LineType[]>(storedLines);
 
   useEffect(() => {
     if (synced) setLocalLines(() => storedLines);
   }, [storedLines, synced]);
 
+  const actualLines = useMemo(() => sortLines(localLines), [localLines]);
   const actualFocusLine = useMemo(
     () => focusLine || localLines[0].lineId,
-    [focusLine, localLines]
+    [focusLine, localLines],
   );
 
-  const handleFocus = (payload: FocusPayload) => {
+  const handleFocus = (payload: { lineId: string; }) => {
     setFocusLine(payload.lineId);
   };
-
-  const handleInsert = (payload: InsertPayload) => {
-    setLocalLines((previous) =>
-      previous.map((line) =>
-        line.lineId === payload.lineId
-          ? {
-              ...line,
-              text: `${line.text.slice(0, payload.index)}${
-                payload.text
-              }${line.text.slice(payload.index)}`,
-            }
-          : line
-      )
-    );
+  const handleInsert = (payload: {
+    lineId: string;
+    index: number;
+    text: string;
+  }) => {
     setFocusLine(payload.lineId);
     handleMethod({ method: "INSERT", payload });
   };
-
-  const handleBreak = (payload: BreakPayload) => {
+  const handleBreak = (payload: { lineId: string; index: number; }) => {
     const newLineId = createLineId();
-    setLocalLines((previous) =>
-      previous
-        .map((line) =>
-          line.lineId === payload.lineId
-            ? [
-                {
-                  lineId: line.lineId,
-                  text: line.text.slice(0, payload.index),
-                },
-                {
-                  lineId: newLineId,
-                  text: line.text.slice(payload.index),
-                },
-              ]
-            : [line]
-        )
-        .flat()
-    );
     setFocusLine(newLineId);
-    handleMethod({ method: "BREAK", payload });
+    handleMethod({ method: "BREAK", payload: { ...payload, newLineId } });
   };
+  const handleDelete = (payload: { lineId: string; index: number; }) => {};
+  const handleFold = (payload: { lineId: string; }) => {};
 
   return (
     <div>
-      {localLines.map(({ lineId: lineId, text }) => (
+      {actualLines.map(({ lineId: lineId, text }) => (
         <Line
           key={lineId}
           lineId={lineId}
           text={text}
           focus={lineId === actualFocusLine}
-          handleFocus={handleFocus}
-          handleInsert={handleInsert}
-          handleDelete={() => {}}
-          handleBreak={handleBreak}
-          handleFold={() => {}}
+          handleFocus={(payload) => handleFocus({ ...payload })}
+          handleInsert={(payload) => handleInsert({ ...payload })}
+          handleDelete={(payload) => handleDelete({ ...payload })}
+          handleBreak={(payload) => handleBreak({ ...payload })}
+          handleFold={(payload) => handleFold({ ...payload })}
         />
       ))}
     </div>

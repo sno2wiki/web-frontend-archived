@@ -1,8 +1,9 @@
 export type InsertPayload = { lineId: string; index: number; text: string; };
-export type FocusPayload = { lineId: string; };
-export type BreakPayload = { lineId: string; index: number; };
+export type BreakPayload = { lineId: string; index: number; newLineId: string; };
 export type DeletePayload = { lineId: string; index: number; };
 export type FoldPayload = { lineId: string; };
+
+export type FocusPayload = { lineId: string; };
 
 export type EditMethodType = "INSERT" | "FOCUS" | "BREAK" | "DELETE" | "FOLD";
 export type EditMethod<TMethodType extends EditMethodType, TMethodPayload extends Record<string, unknown>> = {
@@ -30,7 +31,7 @@ export type EditCommitType = {
 };
 export type CommitUnion = InitCommitType | EditCommitType;
 
-export type LineType = { lineId: string; text: string; };
+export type LineType = { lineId: string; nextLineId: string | null; text: string; };
 export type Lines = LineType[];
 
 export type DocumentType = {

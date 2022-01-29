@@ -1,7 +1,5 @@
 import React, { useMemo, useState } from "react";
 
-import { BreakPayload, DeletePayload, FocusPayload, FoldPayload, InsertPayload } from "~/types";
-
 import { Char } from "./Char";
 import { Input } from "./Input";
 
@@ -9,11 +7,11 @@ export const Line: React.VFC<{
   lineId: string;
   text: string;
   focus: boolean;
-  handleFocus(payload: FocusPayload): void;
-  handleInsert(payload: InsertPayload): void;
-  handleBreak(payload: BreakPayload): void;
-  handleFold(payload: FoldPayload): void;
-  handleDelete(payload: DeletePayload): void;
+  handleFocus(payload: { lineId: string; index: number; }): void;
+  handleInsert(payload: { lineId: string; index: number; text: string; }): void;
+  handleBreak(payload: { lineId: string; index: number; }): void;
+  handleFold(payload: { lineId: string; }): void;
+  handleDelete(payload: { lineId: string; index: number; }): void;
 }> = ({
   lineId,
   text,
@@ -33,19 +31,31 @@ export const Line: React.VFC<{
     [text],
   );
 
+  const handleClickChar = (index: number, positionX: "LEFTER" | "RIGHTER") => {
+    const newCursor = positionX === "LEFTER" ? index - 1 : index;
+    setCursor(newCursor);
+    handleFocus({ lineId, index: newCursor });
+  };
+
   const handleClickEnd = () => {
-    setCursor(text.length);
-    handleFocus({ lineId });
+    const newCursor = text.length;
+    setCursor(newCursor);
+    handleFocus({ lineId, index: newCursor });
   };
 
-  const handleClick = (index: number, positionX: "LEFTER" | "RIGHTER") => {
-    setCursor(positionX === "LEFTER" ? index - 1 : index);
-    handleFocus({ lineId });
-  };
-
-  const handleChange = (text: string, index: number) => {
+  const handleChange = (index: number, text: string) => {
+    const newCursor = cursor + text.length;
+    setCursor(() => newCursor);
     handleInsert({ lineId, text: text, index: index });
-    setCursor((cursor) => cursor + text.length);
+  };
+
+  const handlePressEnter = (index: number, offset: number) => {
+    handleBreak({ lineId, index: index + offset });
+  };
+
+  const handlePressBackspace = (index: number) => {
+    if (cursor === 0) handleFold({ lineId });
+    else handleDelete({ lineId, index });
   };
 
   return (
@@ -65,18 +75,13 @@ export const Line: React.VFC<{
         >
           <Char
             char={char}
-            onClick={(positionX) => handleClick(index, positionX)}
+            onClick={(positionX) => handleClickChar(index, positionX)}
           />
           {focus && cursor === index && (
             <Input
-              onChange={(text) => handleChange(text, index)}
-              onPressEnter={(offset) => {
-                handleBreak({ lineId, index: index + offset });
-              }}
-              onPressBackspace={() => {
-                if (cursor === 0) handleFold({ lineId });
-                else handleDelete({ lineId, index });
-              }}
+              onChange={(text) => handleChange(index, text)}
+              onPressEnter={(offset) => handlePressEnter(index, offset)}
+              onPressBackspace={() => handlePressBackspace(index)}
             />
           )}
         </span>
