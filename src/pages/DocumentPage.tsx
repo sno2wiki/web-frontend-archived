@@ -22,7 +22,7 @@ export const EditableDocument: React.VFC<{
           <p>{edit.synced ? "Synched" : "Unsynced"}</p>
           <Document
             storedLines={edit.lines}
-            handleMethod={edit.sendCommit}
+            handleMethod={edit.pushCommit}
             synced={edit.synced}
           ></Document>
         </>

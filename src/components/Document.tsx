@@ -11,13 +11,10 @@ import { Line } from "./Line";
 
 export const Document: React.VFC<{
   storedLines: Lines;
-  handleMethod(data: EditData): void;
   synced: boolean;
+  handleMethod(data: EditData): void;
 }> = ({ storedLines: storedLines, handleMethod, synced: synced }) => {
-  const [cursor, setCursor] = useState<{ line: string; index: number }>({
-    line: storedLines[0].lineId,
-    index: 0,
-  });
+  const [focusLine, setFocusLine] = useState<string | null>(null);
   const [localLines, setLocalLines] = useState<Lines>(storedLines);
 
   const parsedStoredLines = useMemo(() => storedLines, [storedLines]);
@@ -26,13 +23,17 @@ export const Document: React.VFC<{
     () => (synced ? parsedStoredLines : parsedLocalLines),
     [parsedStoredLines, parsedLocalLines]
   );
+  const actualFocusLine = useMemo(
+    () => focusLine || actualLines[0].lineId,
+    [focusLine, actualLines]
+  );
 
   useEffect(() => {
     if (synced) setLocalLines(() => storedLines);
   }, [synced]);
 
   const handleFocus = (payload: FocusPayload) => {
-    setCursor({ line: payload.lineId, index: payload.index });
+    setFocusLine(payload.lineId);
   };
 
   const handleInsert = (payload: InsertPayload) => {
@@ -48,10 +49,7 @@ export const Document: React.VFC<{
           : line
       )
     );
-    setCursor((previous) => ({
-      ...previous,
-      index: previous.index + payload.text.length,
-    }));
+    setFocusLine(payload.lineId);
     handleMethod({ method: "INSERT", payload });
   };
 
@@ -75,7 +73,7 @@ export const Document: React.VFC<{
         )
         .flat()
     );
-    setCursor({ line: newLineId, index: 0 });
+    setFocusLine(newLineId);
     handleMethod({ method: "BREAK", payload });
   };
 
@@ -86,7 +84,7 @@ export const Document: React.VFC<{
           key={lineId}
           lineId={lineId}
           text={text}
-          cursor={lineId === cursor.line ? cursor.index : null}
+          focus={lineId === actualFocusLine}
           handleFocus={handleFocus}
           handleInsert={handleInsert}
           handleDelete={() => {}}

@@ -1,5 +1,5 @@
 export type InsertPayload = { lineId: string; index: number; text: string; };
-export type FocusPayload = { lineId: string; index: number; };
+export type FocusPayload = { lineId: string; };
 export type BreakPayload = { lineId: string; index: number; };
 export type DeletePayload = { lineId: string; index: number; };
 export type FoldPayload = { lineId: string; };

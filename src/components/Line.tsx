@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   BreakPayload,
   DeletePayload,
@@ -13,7 +13,7 @@ import { Input } from "./Input";
 export const Line: React.VFC<{
   lineId: string;
   text: string;
-  cursor: null | number;
+  focus: boolean;
   handleFocus(payload: FocusPayload): void;
   handleInsert(payload: InsertPayload): void;
   handleBreak(payload: BreakPayload): void;
@@ -22,13 +22,14 @@ export const Line: React.VFC<{
 }> = ({
   lineId,
   text,
-  cursor,
+  focus,
   handleFocus,
   handleBreak,
   handleInsert,
   handleDelete,
   handleFold,
 }) => {
+  const [cursor, setCursor] = useState(0);
   const chars = useMemo(
     () => [
       { char: "", index: 0 },
@@ -38,11 +39,18 @@ export const Line: React.VFC<{
   );
 
   const handleClickEnd = () => {
-    handleFocus({ lineId, index: text.length });
+    setCursor(text.length);
+    handleFocus({ lineId });
   };
 
   const handleClick = (index: number, positionX: "LEFTER" | "RIGHTER") => {
-    handleFocus({ lineId, index: positionX === "LEFTER" ? index - 1 : index });
+    setCursor(positionX === "LEFTER" ? index - 1 : index);
+    handleFocus({ lineId });
+  };
+
+  const handleChange = (text: string, index: number) => {
+    handleInsert({ lineId, text: text, index: index });
+    setCursor((cursor) => cursor + text.length);
   };
 
   return (
@@ -64,11 +72,9 @@ export const Line: React.VFC<{
             char={char}
             onClick={(positionX) => handleClick(index, positionX)}
           />
-          {cursor === index && (
+          {focus && cursor === index && (
             <Input
-              onChange={(text) =>
-                handleInsert({ lineId, text: text, index: index })
-              }
+              onChange={(text) => handleChange(text, index)}
               onPressEnter={(offset) => {
                 handleBreak({ lineId, index: index + offset });
               }}
