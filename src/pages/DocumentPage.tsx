@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+
 import { useAuth } from "~/auth/useAuth";
 import { Document } from "~/components/Document";
 import { useDocumentEditor as useDocumentEditor } from "~/hooks/useDocumentEditor";
@@ -24,7 +25,7 @@ export const EditableDocument: React.VFC<{
             storedLines={edit.lines}
             handleMethod={edit.pushCommit}
             synced={edit.synced}
-          ></Document>
+          />
         </>
       )}
     </>
@@ -40,10 +41,7 @@ export const DocumentPage: React.VFC = () => {
       <span>{id}</span>
       {id && user && (
         <>
-          <EditableDocument
-            documentId={id}
-            userId={user.userId}
-          ></EditableDocument>
+          <EditableDocument documentId={id} userId={user.userId} />
         </>
       )}
     </div>

@@ -14,11 +14,11 @@ export const Input: React.VFC<{
 
   useEffect(() => {
     inputRef.current?.focus();
-  }, [inputRef.current]);
+  }, []);
 
   useEffect(() => {
     if (input !== "" && decided) onChange(input);
-  }, [decided, input]);
+  }, [decided, input, onChange]);
 
   return (
     <span
@@ -52,7 +52,7 @@ export const Input: React.VFC<{
         onCompositionEnd={(e) => {
           setDecided(true);
         }}
-      ></input>
+      />
     </span>
   );
 };

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+
 import { createCommitId } from "~/generators/id";
-import { EditData, Lines } from "~/types";
+import { EditData } from "~/types";
 
 export const calcDocumentEditEndpoint = (id: string) => "ws://0.0.0.0:8000/docs/" + id + "/edit";
 
@@ -73,7 +74,7 @@ export const useDocumentEditor = ({
   }, [documentId, userId, online]);
 
   useEffect(() => {
-    if (commits.length <= 1) return
+    if (commits.length <= 1) return;
     if (syncCommitsTimeoutRef.current) clearTimeout(syncCommitsTimeoutRef.current);
 
     setSynced(false);

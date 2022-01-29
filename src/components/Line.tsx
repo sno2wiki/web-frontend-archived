@@ -1,12 +1,7 @@
 import React, { useMemo, useState } from "react";
-import {
-  BreakPayload,
-  DeletePayload,
-  EditData,
-  FocusPayload,
-  FoldPayload,
-  InsertPayload,
-} from "~/types";
+
+import { BreakPayload, DeletePayload, FocusPayload, FoldPayload, InsertPayload } from "~/types";
+
 import { Char } from "./Char";
 import { Input } from "./Input";
 
@@ -35,7 +30,7 @@ export const Line: React.VFC<{
       { char: "", index: 0 },
       ...text.split("").map((char, index) => ({ char, index: index + 1 })),
     ],
-    [text]
+    [text],
   );
 
   const handleClickEnd = () => {
@@ -62,7 +57,7 @@ export const Line: React.VFC<{
           inset: 0,
           zIndex: 0,
         }}
-      ></div>
+      />
       {chars.map(({ char, index }) => (
         <span
           key={index}
@@ -82,7 +77,7 @@ export const Line: React.VFC<{
                 if (cursor === 0) handleFold({ lineId });
                 else handleDelete({ lineId, index });
               }}
-            ></Input>
+            />
           )}
         </span>
       ))}

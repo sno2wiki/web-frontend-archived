@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+
 import { createLineId } from "~/generators/id";
 import {
   BreakPayload,
@@ -7,6 +8,7 @@ import {
   InsertPayload,
   Lines,
 } from "~/types";
+
 import { Line } from "./Line";
 
 export const Document: React.VFC<{
@@ -21,7 +23,7 @@ export const Document: React.VFC<{
   const parsedLocalLines = useMemo(() => localLines, [localLines]);
   const actualLines = useMemo(
     () => (synced ? parsedStoredLines : parsedLocalLines),
-    [parsedStoredLines, parsedLocalLines]
+    [synced, parsedStoredLines, parsedLocalLines]
   );
   const actualFocusLine = useMemo(
     () => focusLine || actualLines[0].lineId,
@@ -30,7 +32,7 @@ export const Document: React.VFC<{
 
   useEffect(() => {
     if (synced) setLocalLines(() => storedLines);
-  }, [synced]);
+  }, [storedLines, synced]);
 
   const handleFocus = (payload: FocusPayload) => {
     setFocusLine(payload.lineId);
@@ -90,7 +92,7 @@ export const Document: React.VFC<{
           handleDelete={() => {}}
           handleBreak={handleBreak}
           handleFold={() => {}}
-        ></Line>
+        />
       ))}
     </div>
   );
