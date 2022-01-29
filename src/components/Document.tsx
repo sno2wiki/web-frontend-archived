@@ -6,8 +6,8 @@ import { EditData, Lines, LineType } from "~/types";
 import { Line } from "./Line";
 
 export const sortLines = (
-  lines: { lineId: string; nextLineId: string | null; text: string; }[],
-): { lineId: string; text: string; }[] => {
+  lines: { lineId: string; nextLineId: string | null; text: string }[]
+): { lineId: string; text: string }[] => {
   return lines;
 };
 
@@ -30,10 +30,10 @@ export const Document: React.VFC<{
   const actualLines = useMemo(() => sortLines(localLines), [localLines]);
   const actualFocusLine = useMemo(
     () => focusLine || localLines[0].lineId,
-    [focusLine, localLines],
+    [focusLine, localLines]
   );
 
-  const handleFocus = (payload: { lineId: string; }) => {
+  const handleFocus = (payload: { lineId: string }) => {
     setFocusLine(payload.lineId);
   };
   const handleInsert = (payload: {
@@ -44,13 +44,17 @@ export const Document: React.VFC<{
     setFocusLine(payload.lineId);
     handleMethod({ method: "INSERT", payload });
   };
-  const handleBreak = (payload: { lineId: string; index: number; }) => {
+  const handleBreak = (payload: { lineId: string; index: number }) => {
     const newLineId = createLineId();
     setFocusLine(newLineId);
     handleMethod({ method: "BREAK", payload: { ...payload, newLineId } });
   };
-  const handleDelete = (payload: { lineId: string; index: number; }) => {};
-  const handleFold = (payload: { lineId: string; }) => {};
+  const handleDelete = (payload: { lineId: string; index: number }) => {
+    handleMethod({ method: "DELETE", payload: { ...payload } });
+  };
+  const handleFold = (payload: { lineId: string }) => {
+    handleMethod({ method: "FOLD", payload: { ...payload } });
+  };
 
   return (
     <div>

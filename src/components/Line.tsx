@@ -7,11 +7,11 @@ export const Line: React.VFC<{
   lineId: string;
   text: string;
   focus: boolean;
-  handleFocus(payload: { lineId: string; index: number; }): void;
-  handleInsert(payload: { lineId: string; index: number; text: string; }): void;
-  handleBreak(payload: { lineId: string; index: number; }): void;
-  handleFold(payload: { lineId: string; }): void;
-  handleDelete(payload: { lineId: string; index: number; }): void;
+  handleFocus(payload: { lineId: string; index: number }): void;
+  handleInsert(payload: { lineId: string; index: number; text: string }): void;
+  handleBreak(payload: { lineId: string; index: number }): void;
+  handleFold(payload: { lineId: string }): void;
+  handleDelete(payload: { lineId: string; index: number }): void;
 }> = ({
   lineId,
   text,
@@ -28,7 +28,7 @@ export const Line: React.VFC<{
       { char: "", index: 0 },
       ...text.split("").map((char, index) => ({ char, index: index + 1 })),
     ],
-    [text],
+    [text]
   );
 
   const handleClickChar = (index: number, positionX: "LEFTER" | "RIGHTER") => {
@@ -54,8 +54,13 @@ export const Line: React.VFC<{
   };
 
   const handlePressBackspace = (index: number) => {
-    if (cursor === 0) handleFold({ lineId });
-    else handleDelete({ lineId, index });
+    if (cursor === 0) {
+      handleFold({ lineId });
+    } else {
+      const newCursor = index - 1;
+      setCursor(() => newCursor);
+      handleDelete({ lineId, index });
+    }
   };
 
   return (
