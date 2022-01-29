@@ -5,20 +5,20 @@ import { EditData, Lines } from "~/types";
 export const calcDocumentEditEndpoint = (id: string) =>
   "ws://0.0.0.0:8000/docs/" + id + "/edit";
 
-export type JoinCommitType = {
-  type: "JOIN";
+
+export type EditCommitType = {
   commitId: string;
   previousCommitId: string;
-  userId: string;
-};
-export type EditCommitType = {
   type: "EDIT";
-  commitId: string;
-  previousId: string;
-  userId: string;
   data: EditData;
 };
-export type CommitType = JoinCommitType | EditCommitType;
+
+export type InitCommitType = {
+  commitId: string;
+  previousCommitId: null;
+  type: "INIT";
+};
+export type CommitUnion = InitCommitType | EditCommitType;
 
 export const useDocumentEditor = ({
   documentId,
@@ -30,10 +30,10 @@ export const useDocumentEditor = ({
   | { ready: false }
   | {
     ready: true;
-    sendCommit: (editData: EditData) => void;
-    lines: Lines;
     online: boolean;
     synced: boolean;
+    lines: { lineId: string; nextLineId: string; text: string; }[];
+    sendCommit(editData: EditData): void;
   } => {
   const wsRef = useRef<WebSocket>();
   const wsMonitorRef = useRef<NodeJS.Timer>();
@@ -42,8 +42,8 @@ export const useDocumentEditor = ({
   const syncCommitsTimeoutRef = useRef<NodeJS.Timer>();
   const [synced, setSynced] = useState(false);
 
-  const [lines, setLines] = useState<Lines>();
-  const [commits, setCommits] = useState<CommitType[]>([]);
+  const [lines, setLines] = useState<{ lineId: string; nextLineId: string; text: string; }[]>();
+  const [commits, setCommits] = useState<CommitUnion[]>([]);
 
   useEffect(() => {
     if (wsRef.current) wsRef.current.close();
@@ -70,30 +70,27 @@ export const useDocumentEditor = ({
 
         setSynced(true);
         setLines(document.lines);
-        setCommits(() => [{ commitId: document.latestCommitId }]);
+        setCommits(() => [{ type: "INIT", previousCommitId: null, commitId: document.latestCommitId }]);
       }
     });
   }, [documentId, userId, online]);
 
   const sendCommit = (payload: EditData) => {
+    if (syncCommitsTimeoutRef.current) clearTimeout(syncCommitsTimeoutRef.current);
+
     const editCommit: EditCommitType = {
       type: "EDIT",
       commitId: createCommitId(),
-      previousId: commits[0].commitId,
-      userId,
+      previousCommitId: commits[0].commitId,
+      // userId,
       data: payload,
     };
-    setCommits((previousCommits) => [...previousCommits, editCommit]);
+    setCommits((previousCommits) => [editCommit, ...previousCommits]);
 
-    if (syncCommitsTimeoutRef.current) {
-      clearTimeout(syncCommitsTimeoutRef.current);
-    }
     setSynced(false);
     syncCommitsTimeoutRef.current = setTimeout(() => {
       if (wsRef.current) {
-        wsRef.current.send(
-          JSON.stringify({ method: "PUSH_COMMITS", payload: { commits } })
-        );
+        wsRef.current.send(JSON.stringify({ method: "PUSH_COMMITS", payload: { commits: commits.reverse() } }));
         setSynced(true);
       }
     }, 250);

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createLineId } from "~/generators/id";
 import {
   BreakPayload,
@@ -10,22 +10,33 @@ import {
 import { Line } from "./Line";
 
 export const Document: React.VFC<{
-  lines: Lines;
+  storedLines: Lines;
   handleMethod(data: EditData): void;
-}> = ({ lines: init, handleMethod }) => {
+  synced: boolean;
+}> = ({ storedLines: storedLines, handleMethod, synced: synced }) => {
   const [cursor, setCursor] = useState<{ line: string; index: number }>({
-    line: init[0].lineId,
+    line: storedLines[0].lineId,
     index: 0,
   });
-  const [lines, setLines] = useState<Lines>(init);
-  const [linesBuffer, setLinesBuffer] = useState<Lines>(init);
+  const [localLines, setLocalLines] = useState<Lines>(storedLines);
+
+  const parsedStoredLines = useMemo(() => storedLines, [storedLines]);
+  const parsedLocalLines = useMemo(() => localLines, [localLines]);
+  const actualLines = useMemo(
+    () => (synced ? parsedStoredLines : parsedLocalLines),
+    [parsedStoredLines, parsedLocalLines]
+  );
+
+  useEffect(() => {
+    if (synced) setLocalLines(() => storedLines);
+  }, [synced]);
 
   const handleFocus = (payload: FocusPayload) => {
     setCursor({ line: payload.lineId, index: payload.index });
   };
 
   const handleInsert = (payload: InsertPayload) => {
-    setLines((previous) =>
+    setLocalLines((previous) =>
       previous.map((line) =>
         line.lineId === payload.lineId
           ? {
@@ -45,8 +56,8 @@ export const Document: React.VFC<{
 
   const handleBreak = (payload: BreakPayload) => {
     const newLineId = createLineId();
-    setLines(() =>
-      linesBuffer
+    setLocalLines((previous) =>
+      previous
         .map((line) =>
           line.lineId === payload.lineId
             ? [
@@ -84,7 +95,7 @@ export const Document: React.VFC<{
 
   return (
     <div>
-      {lines.map(({ lineId: lineId, text }) => (
+      {actualLines.map(({ lineId: lineId, text }) => (
         <Line
           key={lineId}
           lineId={lineId}
