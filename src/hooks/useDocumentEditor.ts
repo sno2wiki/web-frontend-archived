@@ -1,23 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 
 import { createCommitId } from "~/generators/id";
-import { EditData } from "~/types";
+import { CommitUnion, EditCommitType, EditData } from "~/types";
 
 export const calcDocumentEditEndpoint = (id: string) => "ws://0.0.0.0:8000/docs/" + id + "/edit";
-
-export type EditCommitType = {
-  commitId: string;
-  previousCommitId: string;
-  type: "EDIT";
-  data: EditData;
-};
-
-export type InitCommitType = {
-  commitId: string;
-  previousCommitId: null;
-  type: "INIT";
-};
-export type CommitUnion = InitCommitType | EditCommitType;
 
 export const useDocumentEditor = ({
   documentId,

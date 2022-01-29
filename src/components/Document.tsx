@@ -7,9 +7,14 @@ import {
   FocusPayload,
   InsertPayload,
   Lines,
+  LineType,
 } from "~/types";
 
 import { Line } from "./Line";
+
+export const sortLines = (lines: LineType[]): LineType[] => {
+  return lines;
+};
 
 export const Document: React.VFC<{
   storedLines: Lines;
@@ -19,20 +24,14 @@ export const Document: React.VFC<{
   const [focusLine, setFocusLine] = useState<string | null>(null);
   const [localLines, setLocalLines] = useState<Lines>(storedLines);
 
-  const parsedStoredLines = useMemo(() => storedLines, [storedLines]);
-  const parsedLocalLines = useMemo(() => localLines, [localLines]);
-  const actualLines = useMemo(
-    () => (synced ? parsedStoredLines : parsedLocalLines),
-    [synced, parsedStoredLines, parsedLocalLines]
-  );
-  const actualFocusLine = useMemo(
-    () => focusLine || actualLines[0].lineId,
-    [focusLine, actualLines]
-  );
-
   useEffect(() => {
     if (synced) setLocalLines(() => storedLines);
   }, [storedLines, synced]);
+
+  const actualFocusLine = useMemo(
+    () => focusLine || localLines[0].lineId,
+    [focusLine, localLines]
+  );
 
   const handleFocus = (payload: FocusPayload) => {
     setFocusLine(payload.lineId);
@@ -81,7 +80,7 @@ export const Document: React.VFC<{
 
   return (
     <div>
-      {actualLines.map(({ lineId: lineId, text }) => (
+      {localLines.map(({ lineId: lineId, text }) => (
         <Line
           key={lineId}
           lineId={lineId}

@@ -16,6 +16,20 @@ export type EditData =
   | EditMethod<"DELETE", DeletePayload>
   | EditMethod<"FOLD", FoldPayload>;
 
+export type InitCommitType = {
+  commitId: string;
+  previousCommitId: null;
+  type: "INIT";
+};
+
+export type EditCommitType = {
+  commitId: string;
+  previousCommitId: string;
+  type: "EDIT";
+  data: EditData;
+};
+export type CommitUnion = InitCommitType | EditCommitType;
+
 export type LineType = { lineId: string; text: string; };
 export type Lines = LineType[];
 
