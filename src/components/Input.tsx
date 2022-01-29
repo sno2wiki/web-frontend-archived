@@ -7,6 +7,7 @@ export const Input: React.VFC<{
   onPressEnter(offset: number): void;
 }> = ({ onChange, onPressEnter: onPressEnter, onPressBackspace }) => {
   const [input, setInput] = useState("");
+  const [decided, setDecided] = useState(true);
 
   const [placeholderRef, { width }] = useMeasure<HTMLDivElement>();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -16,20 +17,14 @@ export const Input: React.VFC<{
   }, [inputRef.current]);
 
   useEffect(() => {
-    onChange(input);
-  }, [input]);
+    if (input !== "" && decided) onChange(input);
+  }, [decided, input]);
 
   return (
     <span
       style={{ display: "inline", lineHeight: "1.5em", position: "relative" }}
     >
-      <span
-        ref={placeholderRef}
-        style={{
-          height: "100%",
-          display: "inline-block",
-        }}
-      >
+      <span ref={placeholderRef} style={{ display: "inline-block" }}>
         {input}
       </span>
       <input
@@ -44,13 +39,18 @@ export const Input: React.VFC<{
           backgroundColor: "#00000022",
           color: "transparent",
         }}
-        value={input}
+        onKeyDown={(e) => {
+          if (input.length === 0 && e.key === "Backspace") onPressBackspace();
+          if (e.key === "Enter") onPressEnter(input.length);
+        }}
         onChange={(e) => {
           setInput(e.target.value);
         }}
-        onKeyDown={(e) => {
-          if (input.length === 0 && e.key === "Backspace") onPressBackspace();
-          else if (e.key === "Enter") onPressEnter(input.length);
+        onCompositionStart={(e) => {
+          setDecided(false);
+        }}
+        onCompositionEnd={(e) => {
+          setDecided(true);
         }}
       ></input>
     </span>
