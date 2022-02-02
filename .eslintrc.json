@@ -24,6 +24,7 @@
     }
   },
   "rules": {
+    "prefer-spread": 2,
     /* unused-imports */
     "unused-imports/no-unused-imports": [2],
     /* simple-import-sort */
