@@ -11,6 +11,17 @@ export const sortLines = (
   return lines;
 };
 
+export const insertText = (previous: string, insert: string, index: number) =>
+  `${previous.slice(0, index)}${insert}${previous.slice(index)}`;
+
+export const deleteText = (previous: string, index: number): string => {
+  console.log(previous, index);
+  if (index === 0) return previous;
+  else if (previous.length < index)
+    return deleteText(previous, previous.length);
+  else return `${previous.slice(0, index - 1)}${previous.slice(index)}`;
+};
+
 export const Document: React.VFC<{
   storedLines: Lines;
   synced: boolean;
@@ -42,15 +53,35 @@ export const Document: React.VFC<{
     text: string;
   }) => {
     setFocusLine(payload.lineId);
+    setLocalLines((previous) =>
+      previous.map((line) =>
+        line.lineId === payload.lineId
+          ? {
+              ...line,
+              text: insertText(line.text, payload.text, payload.index),
+            }
+          : line
+      )
+    );
     handleMethod({ method: "INSERT", payload });
+  };
+  const handleDelete = (payload: { lineId: string; index: number }) => {
+    setLocalLines((previous) =>
+      previous.map((line) =>
+        line.lineId === payload.lineId
+          ? {
+              ...line,
+              text: deleteText(line.text, payload.index),
+            }
+          : line
+      )
+    );
+    handleMethod({ method: "DELETE", payload: { ...payload } });
   };
   const handleBreak = (payload: { lineId: string; index: number }) => {
     const newLineId = createLineId();
     setFocusLine(newLineId);
     handleMethod({ method: "BREAK", payload: { ...payload, newLineId } });
-  };
-  const handleDelete = (payload: { lineId: string; index: number }) => {
-    handleMethod({ method: "DELETE", payload: { ...payload } });
   };
   const handleFold = (payload: { lineId: string }) => {
     handleMethod({ method: "FOLD", payload: { ...payload } });
