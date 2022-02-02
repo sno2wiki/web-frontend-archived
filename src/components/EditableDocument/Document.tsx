@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-import { createLineId } from "~/common/id";
+import { createLineId } from "~/common/generateId";
 import { EditData, Lines, LineType } from "~/types";
 
 import { deleteText, insertText, sortLines } from "./edit";
