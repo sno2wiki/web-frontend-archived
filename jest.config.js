@@ -3,10 +3,10 @@
  */
 const config = {
   testEnvironment: "jsdom",
-  testMatch: [
-    "**/*.test.(j|t)sx?",
+  "testMatch": [
+    "**/*.test.(ts|js)",
+    "**/*.test.(tsx|jsx)",
   ],
-  setupFilesAfterEnv: ["<rootDir>/test/setupTest.ts"],
   testPathIgnorePatterns: [
     "<rootDir>/node_modules/",
     "<rootDir>/test/",

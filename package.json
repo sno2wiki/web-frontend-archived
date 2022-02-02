@@ -11,8 +11,8 @@
     "lintfix:eslint": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "fmt": "run-s fmt:dprint",
     "fmt:dprint": "dprint fmt --config ./dprint.json",
-    "test": "jest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "jest"
   },
   "dependencies": {
     "nanoid": "^3.2.0",
@@ -44,6 +44,7 @@
     "eslint-plugin-react-hooks": "^4.3.0",
     "eslint-plugin-simple-import-sort": "^7.0.0",
     "eslint-plugin-unused-imports": "^2.0.0",
+    "jest": "^27.4.7",
     "npm-run-all": "^4.1.5",
     "typescript": "^4.5.5",
     "vite": "^2.6.14",

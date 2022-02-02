@@ -18,9 +18,6 @@
   "settings": {
     "react": {
       "version": "detect"
-    },
-    "jest": {
-      "version": 27 // because of @swc/jest
     }
   },
   "rules": {
