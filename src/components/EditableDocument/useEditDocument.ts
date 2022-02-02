@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { calcEditDocumentEndpoint } from "~/common/endpoints";
-import { createCommitId } from "~/generators/id";
+import { createCommitId } from "~/common/generateId";
 import { CommitUnion, EditCommitType, EditData } from "~/types";
 
 export const useEditDocument = ({

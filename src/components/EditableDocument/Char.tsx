@@ -1,7 +1,6 @@
 import React from "react";
 
-export const calcClickSide = (per: number) =>
-  per < 0.5 ? "LEFTER" : "RIGHTER";
+export const calcClickSide = (per: number) => per < 0.5 ? "LEFTER" : "RIGHTER";
 
 export const Char: React.VFC<{
   char: string;
@@ -13,8 +12,8 @@ export const Char: React.VFC<{
       onClick={(e) => {
         onClick(
           calcClickSide(
-            (e.pageX - e.currentTarget.offsetLeft) / e.currentTarget.offsetWidth
-          )
+            (e.pageX - e.currentTarget.offsetLeft) / e.currentTarget.offsetWidth,
+          ),
         );
       }}
     >

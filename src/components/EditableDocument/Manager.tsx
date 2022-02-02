@@ -1,8 +1,7 @@
-import { useEditDocument as useEditDocument } from "~/hooks/useEditDocument";
-
 import { Document } from "./Document";
+import { useEditDocument as useEditDocument } from "./useEditDocument";
 
-export const EditableDocument: React.VFC<{
+export const Manager: React.VFC<{
   documentId: string;
   userId: string;
 }> = ({ documentId: documentId, userId: userId }) => {

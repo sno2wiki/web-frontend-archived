@@ -1,1 +1,1 @@
-export { EditableDocument } from "./EditableDocument";
+export { Manager as EditableDocument } from "./Manager";
