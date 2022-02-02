@@ -3,18 +3,18 @@ import { sortLines } from "./sortLines";
 describe("sortLines", () => {
   test("最後の行が見つからない場合は例外を投げる", () => {
     expect(() => {
-      sortLines([{ lineId: "line_a", nextLineId: "line_b", text: "A" },])
-    }).toThrowError("Not found last lines.")
-  })
+      sortLines([{ lineId: "line_a", nextLineId: "line_b", text: "A" }]);
+    }).toThrowError("Not found last lines.");
+  });
 
   test("並び替えた後の行の数が合わなければ例外を投げる", () => {
     expect(() => {
       sortLines([
         { lineId: "line_a", nextLineId: "line_c", text: "A" },
-        { lineId: "line_b", nextLineId: null, text: "B" },])
-    }).toThrowError("Lines structure may be broken.")
-  })
-
+        { lineId: "line_b", nextLineId: null, text: "B" },
+      ]);
+    }).toThrowError("Lines structure may be broken.");
+  });
 
   test("空配列", () => {
     const actual = sortLines([]);

@@ -3,32 +3,32 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createLineId } from "~/common/generateId";
 import { EditData, Lines, LineType } from "~/types";
 
-import { deleteText, insertText, sortLines } from "./edit";
+import {
+  applyBreak,
+  applyDelete,
+  applyFold,
+  applyInsert,
+  sortLines,
+} from "./edit";
 import { Line } from "./Line";
-
 export const Document: React.VFC<{
   storedLines: Lines;
-  synced: boolean;
   pushCommit(data: EditData): void;
-}> = ({
-  storedLines: storedLines,
-  pushCommit: handleMethod,
-  synced: synced,
-}) => {
+}> = ({ storedLines: storedLines, pushCommit: handleMethod }) => {
   const [focusLine, setFocusLine] = useState<string | null>(null);
   const [localLines, setLocalLines] = useState<LineType[]>(storedLines);
 
   useEffect(() => {
-    if (synced) setLocalLines(() => storedLines);
-  }, [storedLines, synced]);
+    setLocalLines(() => storedLines);
+  }, [storedLines]);
 
   const actualLines = useMemo(() => sortLines(localLines), [localLines]);
   const actualFocusLine = useMemo(
     () => focusLine || localLines[0].lineId,
-    [focusLine, localLines],
+    [focusLine, localLines]
   );
 
-  const handleFocus = (payload: { lineId: string; }) => {
+  const handleFocus = (payload: { lineId: string }) => {
     setFocusLine(payload.lineId);
   };
   const handleInsert = (payload: {
@@ -37,37 +37,23 @@ export const Document: React.VFC<{
     text: string;
   }) => {
     setFocusLine(payload.lineId);
-    setLocalLines((previous) =>
-      previous.map((line) =>
-        line.lineId === payload.lineId
-          ? {
-            ...line,
-            text: insertText(line.text, payload.text, payload.index),
-          }
-          : line
-      )
-    );
+    setLocalLines((previous) => applyInsert(previous, payload));
     handleMethod({ method: "INSERT", payload });
   };
-  const handleDelete = (payload: { lineId: string; index: number; }) => {
-    setLocalLines((previous) =>
-      previous.map((line) =>
-        line.lineId === payload.lineId
-          ? {
-            ...line,
-            text: deleteText(line.text, payload.index),
-          }
-          : line
-      )
-    );
+  const handleDelete = (payload: { lineId: string; index: number }) => {
+    setLocalLines((previous) => applyDelete(previous, payload));
     handleMethod({ method: "DELETE", payload: { ...payload } });
   };
-  const handleBreak = (payload: { lineId: string; index: number; }) => {
+  const handleBreak = (payload: { lineId: string; index: number }) => {
     const newLineId = createLineId();
     setFocusLine(newLineId);
+    setLocalLines((previous) =>
+      applyBreak(previous, { ...payload, newLineId })
+    );
     handleMethod({ method: "BREAK", payload: { ...payload, newLineId } });
   };
-  const handleFold = (payload: { lineId: string; }) => {
+  const handleFold = (payload: { lineId: string }) => {
+    setLocalLines((previous) => applyFold(previous, payload));
     handleMethod({ method: "FOLD", payload: { ...payload } });
   };
 
