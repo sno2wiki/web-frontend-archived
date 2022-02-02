@@ -15,7 +15,7 @@ export const useEditDocument = ({
   | {
     ready: true;
     online: boolean;
-    synced: boolean;
+    pushed: boolean;
     lines: { lineId: string; nextLineId: string; text: string; }[];
     pushCommit(editData: EditData): void;
   } =>
@@ -25,7 +25,7 @@ export const useEditDocument = ({
   const [online, setOnline] = useState(false);
 
   const syncCommitsTimeoutRef = useRef<NodeJS.Timer>();
-  const [synced, setSynced] = useState(false);
+  const [pushed, setPushed] = useState(false);
 
   const [lines, setLines] = useState<{ lineId: string; nextLineId: string; text: string; }[]>([]);
   const [commits, setCommits] = useState<CommitUnion[]>([]);
@@ -54,7 +54,7 @@ export const useEditDocument = ({
 
         setLines(document.lines);
         setCommits(() => [{ type: "INIT", previousCommitId: null, commitId: document.latestCommitId }]);
-        setSynced(true);
+        setPushed(true);
       }
     });
   }, [documentId, userId, online]);
@@ -63,11 +63,11 @@ export const useEditDocument = ({
     if (commits.length <= 1) return;
     if (syncCommitsTimeoutRef.current) clearTimeout(syncCommitsTimeoutRef.current);
 
-    setSynced(false);
+    setPushed(false);
     syncCommitsTimeoutRef.current = setTimeout(() => {
       if (wsRef.current) {
         wsRef.current.send(JSON.stringify({ method: "PUSH_COMMITS", payload: { commits: commits.reverse() } }));
-        setSynced(true);
+        setPushed(true);
       }
     }, 250);
   }, [commits]);
@@ -87,7 +87,7 @@ export const useEditDocument = ({
     return {
       ready: true,
       online: online,
-      synced: synced,
+      pushed: pushed,
       lines: lines,
       pushCommit: pushCommit,
     };

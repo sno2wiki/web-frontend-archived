@@ -17,7 +17,7 @@ export const Manager: React.VFC<{
       {edit.ready && (
         <>
           <p>{edit.online ? "Online" : "Offline"}</p>
-          <p>{edit.synced ? "Synched" : "Unsynced"}</p>
+          <p>{edit.pushed ? "Pushed" : "Unpushed"}</p>
           <Document storedLines={edit.lines} pushCommit={edit.pushCommit} />
         </>
       )}
