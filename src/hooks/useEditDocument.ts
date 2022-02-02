@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 
+import { calcEditDocumentEndpoint } from "~/common/endpoints";
 import { createCommitId } from "~/generators/id";
 import { CommitUnion, EditCommitType, EditData } from "~/types";
 
-export const calcDocumentEditEndpoint = (id: string) => "ws://0.0.0.0:8000/docs/" + id + "/edit";
-
-export const useDocumentEditor = ({
+export const useEditDocument = ({
   documentId,
   userId,
 }: {
@@ -19,8 +18,7 @@ export const useDocumentEditor = ({
     synced: boolean;
     lines: { lineId: string; nextLineId: string; text: string; }[];
     pushCommit(editData: EditData): void;
-  } =>
-{
+  } => {
   const wsRef = useRef<WebSocket>();
   const wsMonitorRef = useRef<NodeJS.Timer>();
   const [online, setOnline] = useState(false);
@@ -35,7 +33,7 @@ export const useDocumentEditor = ({
     if (wsRef.current) wsRef.current.close();
     if (wsMonitorRef.current) clearInterval(wsMonitorRef.current);
 
-    wsRef.current = new WebSocket(calcDocumentEditEndpoint(documentId));
+    wsRef.current = new WebSocket(calcEditDocumentEndpoint(documentId));
     wsRef.current.addEventListener("open", () => {
       setOnline(true);
       wsMonitorRef.current = setInterval(() => {

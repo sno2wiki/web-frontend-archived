@@ -3,24 +3,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createLineId } from "~/generators/id";
 import { EditData, Lines, LineType } from "~/types";
 
+import { deleteText, insertText, sortLines } from "./edit";
 import { Line } from "./Line";
-
-export const sortLines = (
-  lines: { lineId: string; nextLineId: string | null; text: string }[]
-): { lineId: string; text: string }[] => {
-  return lines;
-};
-
-export const insertText = (previous: string, insert: string, index: number) =>
-  `${previous.slice(0, index)}${insert}${previous.slice(index)}`;
-
-export const deleteText = (previous: string, index: number): string => {
-  console.log(previous, index);
-  if (index === 0) return previous;
-  else if (previous.length < index)
-    return deleteText(previous, previous.length);
-  else return `${previous.slice(0, index - 1)}${previous.slice(index)}`;
-};
 
 export const Document: React.VFC<{
   storedLines: Lines;
