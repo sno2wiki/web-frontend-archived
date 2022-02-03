@@ -3,13 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createLineId } from "~/common/generateId";
 import { EditData, Lines, LineType } from "~/types";
 
-import {
-  applyBreak,
-  applyDelete,
-  applyFold,
-  applyInsert,
-  sortLines,
-} from "./edit";
+import { applyBreak, applyDelete, applyFold, applyInsert, sortLines } from "./edit";
 import { Line } from "./Line";
 export const Document: React.VFC<{
   storedLines: Lines;
@@ -25,10 +19,10 @@ export const Document: React.VFC<{
   const actualLines = useMemo(() => sortLines(localLines), [localLines]);
   const actualFocusLine = useMemo(
     () => focusLine || localLines[0].lineId,
-    [focusLine, localLines]
+    [focusLine, localLines],
   );
 
-  const handleFocus = (payload: { lineId: string }) => {
+  const handleFocus = (payload: { lineId: string; }) => {
     setFocusLine(payload.lineId);
   };
   const handleInsert = (payload: {
@@ -40,19 +34,17 @@ export const Document: React.VFC<{
     setLocalLines((previous) => applyInsert(previous, payload));
     handleMethod({ method: "INSERT", payload });
   };
-  const handleDelete = (payload: { lineId: string; index: number }) => {
+  const handleDelete = (payload: { lineId: string; index: number; }) => {
     setLocalLines((previous) => applyDelete(previous, payload));
     handleMethod({ method: "DELETE", payload: { ...payload } });
   };
-  const handleBreak = (payload: { lineId: string; index: number }) => {
+  const handleBreak = (payload: { lineId: string; index: number; }) => {
     const newLineId = createLineId();
     setFocusLine(newLineId);
-    setLocalLines((previous) =>
-      applyBreak(previous, { ...payload, newLineId })
-    );
+    setLocalLines((previous) => applyBreak(previous, { ...payload, newLineId }));
     handleMethod({ method: "BREAK", payload: { ...payload, newLineId } });
   };
-  const handleFold = (payload: { lineId: string }) => {
+  const handleFold = (payload: { lineId: string; }) => {
     setLocalLines((previous) => applyFold(previous, payload));
     handleMethod({ method: "FOLD", payload: { ...payload } });
   };

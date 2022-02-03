@@ -14,5 +14,8 @@ yarn.lock
 .vscode/*
 !.vscode/extensions.json
 
+# ESLint
+.eslintcache
+
 # Output
 dist/
