@@ -41,9 +41,9 @@ export const Line: React.VFC<{
         style={{ position: "absolute", inset: 0, zIndex: 0 }}
       />
       {chars.map(({ char, index }) => (
-        <span
+        <div
           key={index}
-          style={{ zIndex: 1, position: "relative", display: "inline-block" }}
+          style={{ zIndex: 1, position: "relative", whiteSpace: "pre-wrap", display: "inline" }}
         >
           <Char char={char} onClick={(positionX) => handleSetCursor(positionX === "LEFTER" ? index - 1 : index)} />
           {(cursor === index) && (
@@ -57,7 +57,7 @@ export const Line: React.VFC<{
               onPressBackspace={() => handlePressBackspace(index)}
             />
           )}
-        </span>
+        </div>
       ))}
     </div>
   );
