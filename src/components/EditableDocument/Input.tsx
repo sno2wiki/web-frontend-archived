@@ -27,12 +27,8 @@ export const Input: React.VFC<{
   }, [decided, input, onChange]);
 
   return (
-    <span
-      style={{ display: "inline", lineHeight: "1.5em", position: "relative" }}
-    >
-      <span ref={placeholderRef} style={{ display: "inline-block" }}>
-        {input}
-      </span>
+    <span style={{ display: "inline", lineHeight: "1.5em", position: "relative" }}>
+      <span ref={placeholderRef} style={{ display: "inline-block" }}>{input}</span>
       <input
         ref={inputRef}
         style={{
