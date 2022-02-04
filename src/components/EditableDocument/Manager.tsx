@@ -1,10 +1,10 @@
 import { Document } from "./Document";
-import { useEditDocument as useEditDocument } from "./useEditDocument";
+import { useEditDocument } from "./useEditDocument";
 
 export const Manager: React.VFC<{
   documentId: string;
   userId: string;
-}> = ({ documentId: documentId, userId: userId }) => {
+}> = ({ documentId, userId }) => {
   const edit = useEditDocument({ documentId, userId });
 
   return (

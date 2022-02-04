@@ -83,17 +83,7 @@ export const useEditDocument = ({
     setCommits((previousCommits) => [editCommit, ...previousCommits]);
   };
 
-  if (0 < lines.length && 0 < commits.length) {
-    return {
-      ready: true,
-      online: online,
-      pushed: pushed,
-      lines: lines,
-      pushCommit: pushCommit,
-    };
-  } else {
-    return {
-      ready: false,
-    };
-  }
+  return lines.length > 0 && commits.length > 0
+    ? { ready: true, online, pushed, lines, pushCommit }
+    : { ready: false };
 };

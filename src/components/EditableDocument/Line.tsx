@@ -24,10 +24,7 @@ export const Line: React.VFC<{
 }) => {
   const [cursor, setCursor] = useState(0);
   const chars = useMemo(
-    () => [
-      { char: "", index: 0 },
-      ...text.split("").map((char, index) => ({ char, index: index + 1 })),
-    ],
+    () => [{ char: "", index: 0 }, ...[...text].map((char, index) => ({ char, index: index + 1 }))],
     [text],
   );
 

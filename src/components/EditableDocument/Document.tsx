@@ -8,7 +8,7 @@ import { Line } from "./Line";
 export const Document: React.VFC<{
   storedLines: Lines;
   pushCommit(data: EditData): void;
-}> = ({ storedLines: storedLines, pushCommit: handleMethod }) => {
+}> = ({ storedLines, pushCommit }) => {
   const [focusLine, setFocusLine] = useState<string | null>(null);
   const [localLines, setLocalLines] = useState<LineType[]>(storedLines);
 
@@ -32,27 +32,27 @@ export const Document: React.VFC<{
   }) => {
     setFocusLine(payload.lineId);
     setLocalLines((previous) => applyInsert(previous, payload));
-    handleMethod({ method: "INSERT", payload });
+    pushCommit({ method: "INSERT", payload });
   };
   const handleDelete = (payload: { lineId: string; index: number; }) => {
     setLocalLines((previous) => applyDelete(previous, payload));
-    handleMethod({ method: "DELETE", payload: { ...payload } });
+    pushCommit({ method: "DELETE", payload: { ...payload } });
   };
   const handleBreak = (payload: { lineId: string; index: number; }) => {
     const newLineId = createLineId();
     setFocusLine(newLineId);
     setLocalLines((previous) => applyBreak(previous, { ...payload, newLineId }));
-    handleMethod({ method: "BREAK", payload: { ...payload, newLineId } });
+    pushCommit({ method: "BREAK", payload: { ...payload, newLineId } });
   };
   const handleFold = (payload: { lineId: string; }) => {
     //  console.dir(localLines);
     //  setLocalLines((previous) => applyFold(previous, payload));
-    handleMethod({ method: "FOLD", payload: { ...payload } });
+    pushCommit({ method: "FOLD", payload: { ...payload } });
   };
 
   return (
     <div>
-      {actualLines.map(({ lineId: lineId, text }) => (
+      {actualLines.map(({ lineId, text }) => (
         <Line
           key={lineId}
           lineId={lineId}

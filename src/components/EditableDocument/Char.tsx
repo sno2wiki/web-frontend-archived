@@ -9,10 +9,10 @@ export const Char: React.VFC<{
   return (
     <span
       style={{ display: "inline-block", lineHeight: "1.5em" }}
-      onClick={(e) => {
+      onClick={(event) => {
         onClick(
           calcClickSide(
-            (e.pageX - e.currentTarget.offsetLeft) / e.currentTarget.offsetWidth,
+            (event.pageX - event.currentTarget.offsetLeft) / event.currentTarget.offsetWidth,
           ),
         );
       }}

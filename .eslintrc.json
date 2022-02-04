@@ -2,6 +2,8 @@
   "root": true,
   "extends": [
     "eslint:recommended",
+    "plugin:unicorn/recommended",
+    "plugin:eslint-comments/recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
     "plugin:jest/recommended",
@@ -22,6 +24,8 @@
   },
   "rules": {
     "prefer-spread": 2,
+    "no-useless-rename": [2],
+    "object-shorthand": [2, "always"],
     /* unused-imports */
     "unused-imports/no-unused-imports": [2],
     /* simple-import-sort */
@@ -29,14 +33,42 @@
     "simple-import-sort/imports": 2,
     "simple-import-sort/exports": 2,
     /* react */
-    "react/self-closing-comp": [2, { "component": true, "html": false }]
+    "react/self-closing-comp": [2, { "component": true, "html": false }],
+    /* unicorn */
+    "unicorn/filename-case": [0],
+    "unicorn/no-null": [0],
+    "unicorn/prevent-abbreviations": [
+      2,
+      {
+        "replacements": {
+          "arg": false,
+          "args": false,
+          "i": false,
+          "j": false,
+          "ref": false,
+          "req": false,
+          "res": false
+        },
+        "allowList": {
+          "ImportMetaEnv": false
+        }
+      }
+    ]
   },
   "overrides": [
     {
       "files": ["*.config.js"],
       "extends": ["plugin:node/recommended"],
       "plugins": ["node"],
-      "rules": {}
+      "rules": {
+        "unicorn/prefer-module": [0]
+      }
+    },
+    {
+      "files": ["*.d.ts"],
+      "rules": {
+        "unicorn/prevent-abbreviations": 0
+      }
     },
     {
       "files": ["*.ts", "*.tsx"],
