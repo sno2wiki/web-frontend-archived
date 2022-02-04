@@ -1,6 +1,6 @@
 export const sortLines = (
   lines: { lineId: string; nextLineId: string | null; text: string; }[],
-): { lineId: string; text: string; }[] => {
+): { lineId: string; prevLineId: string | null; postLineId: string | null; text: string; }[] => {
   if (lines.length === 0) return [];
 
   const lastLine = lines.find(({ nextLineId }) => nextLineId === null);
@@ -18,5 +18,21 @@ export const sortLines = (
 
   if (sorted.length !== lines.length) throw new Error("Lines structure may be broken.");
 
-  return sorted.map(({ lineId, text }) => ({ lineId, text })).reverse();
+  // eslint-disable-next-line unicorn/no-array-reduce
+  return sorted.reverse().reduce(
+    (
+      previous: { lineId: string; prevLineId: string | null; postLineId: string | null; text: string; }[],
+      current,
+      i,
+    ) => [
+      ...previous,
+      {
+        lineId: current.lineId,
+        prevLineId: i === 0 ? null : previous[i - 1].lineId,
+        postLineId: current.nextLineId,
+        text: current.text,
+      },
+    ],
+    [],
+  );
 };

@@ -52,11 +52,11 @@ export const Document: React.VFC<{
 
   return (
     <div>
-      {actualLines.map(({ lineId, text }) => (
+      {actualLines.map(({ lineId, ...rest }) => (
         <Line
           key={lineId}
           lineId={lineId}
-          text={text}
+          {...rest}
           focus={lineId === actualFocusLine}
           handleFocus={(payload) => handleFocus({ ...payload })}
           handleInsert={(payload) => handleInsert({ ...payload })}

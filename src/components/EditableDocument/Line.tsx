@@ -5,6 +5,8 @@ import { Input } from "./Input";
 
 export const Line: React.VFC<{
   lineId: string;
+  prevLineId: string | null;
+  postLineId: string | null;
   text: string;
   focus: boolean;
   handleFocus(payload: { lineId: string; index: number; }): void;
@@ -14,6 +16,8 @@ export const Line: React.VFC<{
   handleDelete(payload: { lineId: string; index: number; }): void;
 }> = ({
   lineId,
+  prevLineId,
+  postLineId,
   text,
   focus,
   handleFocus,
@@ -61,23 +65,33 @@ export const Line: React.VFC<{
   };
 
   const handlePressLeft = (index: number) => {
-    if (index === 0) {}
-    else {
+    if (index === 0 && prevLineId) {
+      handleFocus({ lineId: prevLineId, index });
+    } else {
       const newCursor = cursor - 1;
       setCursor(() => newCursor);
       handleFocus({ lineId, index: newCursor });
     }
   };
   const handlePressRight = (index: number) => {
-    if (index === chars.length - 1) {}
-    else {
+    if (index === chars.length - 1 && postLineId) {
+      handleFocus({ lineId: postLineId, index });
+    } else {
       const newCursor = cursor + 1;
       setCursor(() => newCursor);
       handleFocus({ lineId, index: newCursor });
     }
   };
-  const handlePressUp = (index: number) => {};
-  const handlePressDown = (index: number) => {};
+  const handlePressUp = (index: number) => {
+    if (prevLineId) {
+      handleFocus({ lineId: prevLineId, index });
+    }
+  };
+  const handlePressDown = (index: number) => {
+    if (postLineId) {
+      handleFocus({ lineId: postLineId, index });
+    }
+  };
 
   return (
     <div id={lineId} style={{ cursor: "text", position: "relative" }}>

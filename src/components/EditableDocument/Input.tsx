@@ -45,8 +45,8 @@ export const Input: React.VFC<{
           backgroundColor: "#00000022",
           color: "transparent",
         }}
-        onKeyDown={(e) => {
-          switch (e.key) {
+        onKeyDown={(event) => {
+          switch (event.key) {
             case "Backspace":
               if (input.length === 0) onPressBackspace();
               break;
@@ -67,13 +67,13 @@ export const Input: React.VFC<{
               break;
           }
         }}
-        onChange={(e) => {
-          setInput(e.target.value);
+        onChange={(event) => {
+          setInput(event.target.value);
         }}
-        onCompositionStart={(e) => {
+        onCompositionStart={() => {
           setDecided(false);
         }}
-        onCompositionEnd={(e) => {
+        onCompositionEnd={() => {
           setDecided(true);
         }}
       />

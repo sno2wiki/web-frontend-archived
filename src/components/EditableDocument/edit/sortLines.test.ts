@@ -29,7 +29,7 @@ describe("sortLines", () => {
     );
     expect(actual).toStrictEqual(
       [
-        { lineId: "line_a", text: "A" },
+        { lineId: "line_a", prevLineId: null, postLineId: null, text: "A" },
       ],
     );
   });
@@ -43,8 +43,8 @@ describe("sortLines", () => {
     );
     expect(actual).toStrictEqual(
       [
-        { lineId: "line_a", text: "A" },
-        { lineId: "line_b", text: "B" },
+        { lineId: "line_a", prevLineId: null, postLineId: "line_b", text: "A" },
+        { lineId: "line_b", prevLineId: "line_a", postLineId: null, text: "B" },
       ],
     );
   });
@@ -58,8 +58,8 @@ describe("sortLines", () => {
     );
     expect(actual).toStrictEqual(
       [
-        { lineId: "line_a", text: "A" },
-        { lineId: "line_b", text: "B" },
+        { lineId: "line_a", prevLineId: null, postLineId: "line_b", text: "A" },
+        { lineId: "line_b", prevLineId: "line_a", postLineId: null, text: "B" },
       ],
     );
   });
@@ -72,9 +72,9 @@ describe("sortLines", () => {
         { lineId: "line_c", nextLineId: null, text: "C" },
       ],
       [
-        { lineId: "line_a", text: "A" },
-        { lineId: "line_b", text: "B" },
-        { lineId: "line_c", text: "C" },
+        { lineId: "line_a", prevLineId: null, postLineId: "line_b", text: "A" },
+        { lineId: "line_b", prevLineId: "line_a", postLineId: "line_c", text: "B" },
+        { lineId: "line_c", prevLineId: "line_b", postLineId: null, text: "C" },
       ],
     ],
     [
@@ -84,9 +84,9 @@ describe("sortLines", () => {
         { lineId: "line_a", nextLineId: "line_b", text: "A" },
       ],
       [
-        { lineId: "line_a", text: "A" },
-        { lineId: "line_b", text: "B" },
-        { lineId: "line_c", text: "C" },
+        { lineId: "line_a", prevLineId: null, postLineId: "line_b", text: "A" },
+        { lineId: "line_b", prevLineId: "line_a", postLineId: "line_c", text: "B" },
+        { lineId: "line_c", prevLineId: "line_b", postLineId: null, text: "C" },
       ],
     ],
   ])("3個以上，#%#", (arg, expected) => {
