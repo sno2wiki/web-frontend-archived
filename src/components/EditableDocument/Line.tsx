@@ -46,7 +46,7 @@ export const Line: React.VFC<{
   const handleChange = (index: number, text: string) => {
     const newCursor = cursor + text.length;
     setCursor(() => newCursor);
-    handleInsert({ lineId, text: text, index: index });
+    handleInsert({ lineId, text, index });
   };
 
   const handlePressEnter = (index: number, offset: number) => {
@@ -62,6 +62,25 @@ export const Line: React.VFC<{
       handleDelete({ lineId, index });
     }
   };
+
+  const handlePressLeft = (index: number) => {
+    if (index === 0) {}
+    else {
+      const newCursor = cursor - 1;
+      setCursor(() => newCursor);
+      handleFocus({ lineId, index: newCursor });
+    }
+  };
+  const handlePressRight = (index: number) => {
+    if (index === chars.length - 1) {}
+    else {
+      const newCursor = cursor + 1;
+      setCursor(() => newCursor);
+      handleFocus({ lineId, index: newCursor });
+    }
+  };
+  const handlePressUp = (index: number) => {};
+  const handlePressDown = (index: number) => {};
 
   return (
     <div id={lineId} style={{ cursor: "text", position: "relative" }}>
@@ -87,6 +106,10 @@ export const Line: React.VFC<{
               onChange={(text) => handleChange(index, text)}
               onPressEnter={(offset) => handlePressEnter(index, offset)}
               onPressBackspace={() => handlePressBackspace(index)}
+              onPressLeft={() => handlePressLeft(index)}
+              onPressRight={() => handlePressRight(index)}
+              onPressUp={() => handlePressUp(index)}
+              onPressDown={() => handlePressDown(index)}
             />
           )}
         </span>

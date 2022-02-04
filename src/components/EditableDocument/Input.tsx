@@ -5,7 +5,13 @@ export const Input: React.VFC<{
   onChange(input: string): void;
   onPressBackspace(): void;
   onPressEnter(offset: number): void;
-}> = ({ onChange, onPressEnter: onPressEnter, onPressBackspace }) => {
+  onPressLeft(): void;
+  onPressRight(): void;
+  onPressUp(): void;
+  onPressDown(): void;
+}> = (
+  { onChange, onPressEnter, onPressBackspace, onPressLeft, onPressDown, onPressRight, onPressUp },
+) => {
   const [input, setInput] = useState("");
   const [decided, setDecided] = useState(true);
 
@@ -40,8 +46,26 @@ export const Input: React.VFC<{
           color: "transparent",
         }}
         onKeyDown={(e) => {
-          if (input.length === 0 && e.key === "Backspace") onPressBackspace();
-          if (e.key === "Enter") onPressEnter(input.length);
+          switch (e.key) {
+            case "Backspace":
+              if (input.length === 0) onPressBackspace();
+              break;
+            case "Enter":
+              onPressEnter(input.length);
+              break;
+            case "ArrowLeft":
+              onPressLeft();
+              break;
+            case "ArrowRight":
+              onPressRight();
+              break;
+            case "ArrowUp":
+              onPressUp();
+              break;
+            case "ArrowDown":
+              onPressDown();
+              break;
+          }
         }}
         onChange={(e) => {
           setInput(e.target.value);
