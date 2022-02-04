@@ -47,7 +47,8 @@
           "j": false,
           "ref": false,
           "req": false,
-          "res": false
+          "res": false,
+          "prev": false
         },
         "allowList": {
           "ImportMetaEnv": false
