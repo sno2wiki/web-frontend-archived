@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createLineId } from "~/common/generateId";
 import { EditData, Lines, LineType } from "~/types";
 
-import { applyBreak, applyDelete, applyFold, applyInsert, sortLines } from "./edit";
+import { applyBreak, applyDelete, applyInsert, sortLines } from "./edit";
 import { Line } from "./Line";
 export const Document: React.VFC<{
   storedLines: Lines;
@@ -45,7 +45,8 @@ export const Document: React.VFC<{
     handleMethod({ method: "BREAK", payload: { ...payload, newLineId } });
   };
   const handleFold = (payload: { lineId: string; }) => {
-    setLocalLines((previous) => applyFold(previous, payload));
+    //  console.dir(localLines);
+    //  setLocalLines((previous) => applyFold(previous, payload));
     handleMethod({ method: "FOLD", payload: { ...payload } });
   };
 
