@@ -38,7 +38,8 @@ export const Input: React.VFC<{
           right: 0,
           width: Math.max(1, width),
           lineHeight: "1.5em",
-          backgroundColor: "#00000022",
+          borderLeft: "1px solid #000",
+          backgroundColor: "#00000011",
           color: "transparent",
         }}
         onKeyDown={(event) => {

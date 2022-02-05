@@ -1,27 +1,13 @@
-import { LineType } from "~/types";
-
 export const applyFold = (
-  lines: LineType[],
+  previous: { id: string; text: string; }[],
   payload: { lineId: string; },
-): LineType[] => {
-  const beforeIndex = lines.findIndex(
-    (line) => line.nextLineId === payload.lineId,
-  );
-  const targetIndex = lines.findIndex((line) => line.lineId === payload.lineId);
-  if (beforeIndex === -1 || targetIndex === -1) {
-    return lines;
-  }
+): { id: string; text: string; }[] => {
+  const targetindex = previous.findIndex(({ id }) => id === payload.lineId);
+  if (targetindex === -1) return previous;
 
-  const beforeLine = lines[beforeIndex];
-  const targetLine = lines[targetIndex];
-  const mergedLine: LineType = {
-    lineId: beforeLine.lineId,
-    nextLineId: targetLine.nextLineId,
-    text: beforeLine.text + targetLine.text,
-  };
-
-  delete lines[beforeIndex];
-  delete lines[targetIndex];
-
-  return [mergedLine, ...lines].filter(Boolean);
+  return [
+    ...previous.slice(0, targetindex - 1),
+    { ...previous[targetindex - 1], text: previous[targetindex - 1].text + previous[targetindex].text },
+    ...previous.slice(targetindex + 1),
+  ];
 };

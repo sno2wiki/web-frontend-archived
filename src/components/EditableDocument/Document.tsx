@@ -1,60 +1,71 @@
 import React, { useEffect, useMemo, useState } from "react";
 
 import { createLineId } from "~/common/generateId";
-import { EditData, Lines, LineType } from "~/types";
 
-import { applyBreak, applyDelete, applyInsert, sortLines } from "./edit";
+import { applyBreak, applyDelete, applyFold, applyInsert } from "./edit";
 import { Line } from "./Line";
-export const Document: React.VFC<{ storedLines: Lines; pushCommit(data: EditData): void; }> = (
+import { CommitData } from "./useEditDocument";
+
+export const Document: React.VFC<
+  { storedLines: { id: string; text: string; }[]; pushCommit(data: CommitData): void; }
+> = (
   { storedLines, pushCommit },
 ) => {
   const [cursor, setCursor] = useState<{ lineId: string; index: number; }>();
-  const [localLines, setLocalLines] = useState<LineType[]>(storedLines);
+  const [localLines, setLocalLines] = useState<{ id: string; text: string; }[]>(storedLines);
 
   useEffect(() => {
     setLocalLines(storedLines);
   }, [storedLines]);
 
-  const actualLines = useMemo(() => sortLines(localLines), [localLines]);
   const actualCursor = useMemo(() => {
-    return cursor ? cursor : { lineId: actualLines[0].lineId, index: 0 };
-  }, [actualLines, cursor]);
+    return cursor ? cursor : { lineId: localLines[0].id, index: 0 };
+  }, [cursor, localLines]);
 
   const handleSetCursor = (lineId: string, index: number) => setCursor({ lineId, index });
   const handleMoveCursor = (lineId: string, index: number, direction: "UP" | "DOWN" | "LEFT" | "RIGHT") => {
-    const baseLine = actualLines.find((line) => line.lineId === lineId);
-    if (!baseLine) return;
+    const baseIndex = localLines.findIndex((line) => line.id === lineId);
+    if (baseIndex === -1) return;
 
     switch (direction) {
       case "UP": {
-        const prevLine = actualLines.find((line) => line.lineId === baseLine.prevLineId);
-        if (!prevLine) break;
-        setCursor({ lineId: prevLine.lineId, index: Math.min(prevLine.text.length, index) });
+        if (baseIndex === 0) {
+          setCursor({ lineId: localLines[0].id, index: 0 });
+        } else {
+          setCursor({
+            lineId: localLines[baseIndex - 1].id,
+            index: Math.min(localLines[baseIndex - 1].text.length, index),
+          });
+        }
         break;
       }
       case "DOWN": {
-        const postLine = actualLines.find((line) => line.lineId === baseLine.postLineId);
-        if (!postLine) break;
-        setCursor({ lineId: postLine.lineId, index: Math.min(postLine.text.length, index) });
+        if (baseIndex === localLines.length - 1) {
+          setCursor({
+            lineId: localLines[localLines.length - 1].id,
+            index: localLines[localLines.length - 1].text.length,
+          });
+        } else {
+          setCursor({
+            lineId: localLines[baseIndex + 1].id,
+            index: Math.min(localLines[baseIndex + 1].text.length, index),
+          });
+        }
         break;
       }
       case "LEFT": {
-        if (index === 0) {
-          const prevLine = actualLines.find((line) => line.lineId === baseLine.prevLineId);
-          if (!prevLine) break;
-          setCursor({ lineId: prevLine.lineId, index: prevLine.text.length });
+        if (0 < baseIndex && index === 0) {
+          setCursor({ lineId: localLines[baseIndex - 1].id, index: localLines[baseIndex - 1].text.length });
         } else {
-          setCursor({ lineId: baseLine.lineId, index: (index - 1) });
+          setCursor({ lineId: localLines[baseIndex].id, index: (index - 1) });
         }
         break;
       }
       case "RIGHT": {
-        if (index === baseLine.text.length) {
-          const postLine = actualLines.find((line) => line.lineId === baseLine.postLineId);
-          if (!postLine) break;
-          setCursor({ lineId: postLine.lineId, index: 0 });
+        if (baseIndex < localLines.length - 1 && index === localLines[baseIndex].text.length) {
+          setCursor({ lineId: localLines[baseIndex + 1].id, index: 0 });
         } else {
-          setCursor({ lineId: baseLine.lineId, index: index + 1 });
+          setCursor({ lineId: localLines[baseIndex].id, index: (index + 1) });
         }
         break;
       }
@@ -67,8 +78,8 @@ export const Document: React.VFC<{ storedLines: Lines; pushCommit(data: EditData
   };
 
   const handleDelete = (lineId: string, index: number) => {
-    setLocalLines((previous) => applyDelete(previous, { lineId, index }));
     setCursor({ lineId, index: index - 1 });
+    setLocalLines((previous) => applyDelete(previous, { lineId, index }));
     pushCommit({ method: "DELETE", payload: { lineId, index } });
   };
 
@@ -80,25 +91,26 @@ export const Document: React.VFC<{ storedLines: Lines; pushCommit(data: EditData
   };
 
   const handleFold = (lineId: string) => {
-    //  console.dir(localLines);
-    //  setLocalLines((previous) => applyFold(previous, payload));
+    const movedToIndex = localLines.findIndex(({ id }) => id === lineId) - 1;
+    setCursor({ lineId: localLines[movedToIndex].id, index: localLines[movedToIndex].text.length });
+    setLocalLines((previous) => applyFold(previous, { lineId }));
     pushCommit({ method: "FOLD", payload: { lineId } });
   };
 
   return (
     <div>
-      {actualLines.map(({ lineId, text }) => (
+      {localLines.map(({ id, text }, i) => (
         <Line
-          key={lineId}
-          lineId={lineId}
+          key={id}
+          lineId={id}
           text={text}
-          cursor={(actualCursor && actualCursor.lineId === lineId) ? actualCursor.index : null}
-          handleSetCursor={(index) => handleSetCursor(lineId, index)}
-          handleMoveCursor={(index, direction) => handleMoveCursor(lineId, index, direction)}
-          handleInsert={(index, text) => handleInsert(lineId, index, text)}
-          handleDelete={(payload) => handleDelete(lineId, payload)}
-          handleBreak={(payload) => handleBreak(lineId, payload)}
-          handleFold={() => handleFold(lineId)}
+          cursor={(actualCursor && actualCursor.lineId === id) ? actualCursor.index : null}
+          handleSetCursor={(index) => handleSetCursor(id, index)}
+          handleMoveCursor={(index, direction) => handleMoveCursor(id, index, direction)}
+          handleInsert={(index, text) => handleInsert(id, index, text)}
+          handleDelete={(payload) => handleDelete(id, payload)}
+          handleBreak={(payload) => handleBreak(id, payload)}
+          handleFold={() => i > 0 && handleFold(id)}
         />
       ))}
     </div>

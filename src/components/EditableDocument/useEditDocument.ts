@@ -2,22 +2,33 @@ import { useEffect, useRef, useState } from "react";
 
 import { calcEditDocumentEndpoint } from "~/common/endpoints";
 import { createCommitId } from "~/common/generateId";
-import { CommitUnion, EditCommitType, EditData } from "~/types";
 
-export const useEditDocument = ({
-  documentId,
-  userId,
-}: {
-  documentId: string;
-  userId: string;
-}):
+export type InsertPayload = { lineId: string; index: number; text: string; };
+export type BreakPayload = { lineId: string; index: number; newLineId: string; };
+export type DeletePayload = { lineId: string; index: number; };
+export type FoldPayload = { lineId: string; };
+
+export type CommitData =
+  | { method: "INSERT"; payload: InsertPayload; }
+  | { method: "BREAK"; payload: BreakPayload; }
+  | { method: "DELETE"; payload: DeletePayload; }
+  | { method: "FOLD"; payload: FoldPayload; };
+
+export type EditCommitType = {
+  commitId: string;
+  data: CommitData;
+};
+
+export const useEditDocument = (
+  { documentId, userId }: { documentId: string; userId: string; },
+):
   | { ready: false; }
   | {
     ready: true;
     online: boolean;
     pushed: boolean;
-    lines: { lineId: string; nextLineId: string; text: string; }[];
-    pushCommit(editData: EditData): void;
+    lines: { id: string; text: string; }[];
+    pushCommit(commitData: CommitData): void;
   } =>
 {
   const wsRef = useRef<WebSocket>();
@@ -27,8 +38,8 @@ export const useEditDocument = ({
   const syncCommitsTimeoutRef = useRef<NodeJS.Timer>();
   const [pushed, setPushed] = useState(false);
 
-  const [lines, setLines] = useState<{ lineId: string; nextLineId: string; text: string; }[]>([]);
-  const [commits, setCommits] = useState<CommitUnion[]>([]);
+  const [lines, setLines] = useState<{ id: string; text: string; }[]>([]);
+  const [commits, setCommits] = useState<EditCommitType[]>([]);
 
   useEffect(() => {
     if (wsRef.current) wsRef.current.close();
@@ -48,19 +59,16 @@ export const useEditDocument = ({
 
       if (data.method === "PULL_DOCUMENT") {
         const payload = data.payload;
-        const document = payload.document;
 
-        console.dir(document);
-
-        setLines(document.lines);
-        setCommits(() => [{ type: "INIT", previousCommitId: null, commitId: document.latestCommitId }]);
+        setLines(() => payload.lines);
+        setCommits(() => []);
         setPushed(true);
       }
     });
   }, [documentId, userId, online]);
 
   useEffect(() => {
-    if (commits.length <= 1) return;
+    if (commits.length === 0) return;
     if (syncCommitsTimeoutRef.current) clearTimeout(syncCommitsTimeoutRef.current);
 
     setPushed(false);
@@ -72,18 +80,12 @@ export const useEditDocument = ({
     }, 250);
   }, [commits]);
 
-  const pushCommit = (payload: EditData) => {
-    const editCommit: EditCommitType = {
-      type: "EDIT",
-      commitId: createCommitId(),
-      previousCommitId: commits[0].commitId,
-      data: payload,
-      // userId,
-    };
+  const pushCommit = (commitData: CommitData) => {
+    const editCommit: EditCommitType = { commitId: createCommitId(), data: commitData };
     setCommits((previousCommits) => [editCommit, ...previousCommits]);
   };
 
-  return lines.length > 0 && commits.length > 0
+  return lines.length > 0
     ? { ready: true, online, pushed, lines, pushCommit }
     : { ready: false };
 };
