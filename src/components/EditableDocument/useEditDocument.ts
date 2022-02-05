@@ -14,7 +14,7 @@ export const useSendCommits = (
   pushed: boolean;
 } => {
   const [commits, setCommits] = useState<Commit[]>([]);
-  const [pushed, setPushed] = useState(false);
+  const [pushed, setPushed] = useState(true);
   const commitTimeoutRef = useRef<NodeJS.Timer>();
 
   useEffect(() => {
@@ -37,7 +37,7 @@ export const useSendCommits = (
 
   const clearCommits = () => {
     setCommits(() => []);
-    setPushed(false);
+    setPushed(true);
   };
 
   return {
@@ -66,6 +66,54 @@ export const useSendFocus = (
   return { setFocus: (data) => setFocus({ data, userId }) };
 };
 
+export const useStrongWebSocket = (
+  endpoint: string,
+  {
+    onMessage,
+    onOpen,
+    onClose,
+    onError,
+  }: {
+    onOpen?: (event: Event) => void;
+    onMessage?: (event: MessageEvent) => void;
+    onClose?: (event: CloseEvent) => void;
+    onError?: (event: Event) => void;
+  },
+): [WebSocket | undefined, boolean] => {
+  const wsRef = useRef<WebSocket>();
+  const wsMonitorRef = useRef<NodeJS.Timer>();
+  const [online, setOnline] = useState(false);
+
+  useEffect(() => {
+    if (online) return;
+    if (wsRef.current) wsRef.current.close();
+    if (wsMonitorRef.current) clearInterval(wsMonitorRef.current);
+
+    wsRef.current = new WebSocket(endpoint);
+    wsRef.current.addEventListener("open", (event) => {
+      setOnline(true);
+      if (onOpen) onOpen(event);
+    });
+    wsRef.current.addEventListener("message", (event) => {
+      setOnline(true);
+      if (onMessage) onMessage(event);
+    });
+    wsRef.current.addEventListener("close", (event) => {
+      setOnline(false);
+      if (onClose) onClose(event);
+    });
+    wsRef.current.addEventListener("error", (event) => {
+      setOnline(false);
+      if (onError) onError(event);
+    });
+    wsMonitorRef.current = setInterval(() => {
+      if (wsRef.current && wsRef.current.readyState !== WebSocket.OPEN) setOnline(false);
+    }, 250);
+  }, [online, endpoint, onMessage, onOpen, onClose, onError]);
+
+  return [wsRef.current, online];
+};
+
 export const useEditDocument = (
   { documentId, userId }: { documentId: string; userId: string; },
 ):
@@ -79,39 +127,23 @@ export const useEditDocument = (
     pushFocus(data: FocusData): void;
   } =>
 {
-  const wsRef = useRef<WebSocket>();
-  const wsMonitorRef = useRef<NodeJS.Timer>();
-  const [online, setOnline] = useState(false);
-
   const [lines, setLines] = useState<{ id: string; text: string; }[]>([]);
 
-  const { addCommit, clearCommits, pushed } = useSendCommits(wsRef.current, userId);
-  const { setFocus } = useSendFocus(wsRef.current, userId);
-
-  useEffect(() => {
-    if (wsRef.current) wsRef.current.close();
-    if (wsMonitorRef.current) clearInterval(wsMonitorRef.current);
-
-    wsRef.current = new WebSocket(calcEditDocumentEndpoint(documentId));
-    wsRef.current.addEventListener("open", () => {
-      setOnline(true);
-      wsMonitorRef.current = setInterval(() => {
-        if (wsRef.current && wsRef.current.readyState !== WebSocket.OPEN) {
-          setOnline(false);
+  const [ws, online] = useStrongWebSocket(
+    calcEditDocumentEndpoint(documentId),
+    {
+      onMessage(event) {
+        const data = JSON.parse(event.data);
+        if (data.method === "PULL_DOCUMENT") {
+          const payload = data.payload;
+          setLines(() => payload.lines);
+          clearCommits();
         }
-      }, 250);
-    });
-    wsRef.current.addEventListener("message", (event) => {
-      const data = JSON.parse(event.data);
-
-      if (data.method === "PULL_DOCUMENT") {
-        const payload = data.payload;
-
-        setLines(() => payload.lines);
-        clearCommits();
-      }
-    });
-  }, [documentId, userId, online, clearCommits]);
+      },
+    },
+  );
+  const { addCommit, clearCommits, pushed } = useSendCommits(ws, userId);
+  const { setFocus } = useSendFocus(ws, userId);
 
   return lines.length > 0
     ? {
