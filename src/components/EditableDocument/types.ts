@@ -9,11 +9,16 @@ export type CommitData =
   | { method: "DELETE"; payload: DeletePayload; }
   | { method: "FOLD"; payload: FoldPayload; };
 
-export type EditCommitType = {
+export type Commit = {
   commitId: string;
+  userId: string;
   data: CommitData;
 };
 
+export type Focus = {
+  userId: string;
+  data: FocusData;
+};
 export interface FocusData {
   lineId: string;
   index: number;

@@ -3,7 +3,23 @@ import { useEffect, useRef, useState } from "react";
 import { calcEditDocumentEndpoint } from "~/common/endpoints";
 import { createCommitId } from "~/common/generateId";
 
-import { CommitData, EditCommitType, FocusData, LineType } from "./types";
+import { Commit, CommitData, Focus, FocusData, LineType } from "./types";
+
+export const useSendFocus = (ws: WebSocket | undefined) => {
+  const [focus, setFocus] = useState<Focus>();
+  const focusTimeoutRef = useRef<NodeJS.Timer>();
+
+  useEffect(() => {
+    if (!focus) return;
+    if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
+
+    focusTimeoutRef.current = setTimeout(() => {
+      if (ws) ws.send(JSON.stringify({ method: "SEND_FOCUS", payload: focus }));
+    }, 100);
+  }, [focus, ws]);
+
+  return (newFocus: Focus) => setFocus(newFocus);
+};
 
 export const useEditDocument = (
   { documentId, userId }: { documentId: string; userId: string; },
@@ -14,19 +30,21 @@ export const useEditDocument = (
     online: boolean;
     pushed: boolean;
     lines: LineType[];
-    pushCommit(data: CommitData): void;
-    pushFocus(data: FocusData): void;
+    pushCommit(data: CommitData, userId: string): void;
+    pushFocus(data: FocusData, userId: string): void;
   } =>
 {
   const wsRef = useRef<WebSocket>();
   const wsMonitorRef = useRef<NodeJS.Timer>();
   const [online, setOnline] = useState(false);
 
-  const syncCommitsTimeoutRef = useRef<NodeJS.Timer>();
   const [pushed, setPushed] = useState(false);
+  const commitTimeoutRef = useRef<NodeJS.Timer>();
+
+  const sendFocus = useSendFocus(wsRef.current);
 
   const [lines, setLines] = useState<{ id: string; text: string; }[]>([]);
-  const [commits, setCommits] = useState<EditCommitType[]>([]);
+  const [commits, setCommits] = useState<Commit[]>([]);
 
   useEffect(() => {
     if (wsRef.current) wsRef.current.close();
@@ -56,27 +74,30 @@ export const useEditDocument = (
 
   useEffect(() => {
     if (commits.length === 0) return;
-    if (syncCommitsTimeoutRef.current) clearTimeout(syncCommitsTimeoutRef.current);
+    if (commitTimeoutRef.current) clearTimeout(commitTimeoutRef.current);
 
     setPushed(false);
-    syncCommitsTimeoutRef.current = setTimeout(() => {
+    commitTimeoutRef.current = setTimeout(() => {
       if (wsRef.current) {
-        wsRef.current.send(JSON.stringify({ method: "PUSH_COMMITS", payload: { commits: commits.reverse() } }));
+        wsRef.current.send(JSON.stringify({ method: "PUSH_COMMITS", payload: { commits } }));
         setPushed(true);
       }
     }, 250);
   }, [commits]);
 
-  const pushCommit = (data: CommitData) => {
-    const editCommit: EditCommitType = { commitId: createCommitId(), data };
-    setCommits((previousCommits) => [editCommit, ...previousCommits]);
-  };
-
-  const pushFocus = (data: FocusData) => {
-    console.dir(data);
+  const pushCommit = (data: CommitData, userId: string) => {
+    const commit: Commit = { commitId: createCommitId(), userId, data };
+    setCommits((previousCommits) => [...previousCommits, commit]);
   };
 
   return lines.length > 0
-    ? { ready: true, online, pushed, lines, pushCommit, pushFocus }
+    ? {
+      ready: true,
+      online,
+      pushed,
+      lines,
+      pushCommit,
+      pushFocus: (data: FocusData, userId: string) => sendFocus({ userId, data }),
+    }
     : { ready: false };
 };
