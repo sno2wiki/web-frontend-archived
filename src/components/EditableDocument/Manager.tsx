@@ -9,23 +9,14 @@ export const Manager: React.VFC<{
 
   return (
     <>
-      {!edit.ready && (
-        <>
-          <p>Loading</p>
-        </>
-      )}
-      {edit.ready && (
-        <>
-          <p>{edit.online ? "Online" : "Offline"}</p>
-          <p>{edit.pushed ? "Pushed" : "Unpushed"}</p>
-          <p>you: {userId}</p>
-          <Document
-            storedLines={edit.lines}
-            pushCommit={(data) => edit.pushCommit(data)}
-            pushFocus={(data) => edit.pushFocus(data)}
-          />
-        </>
-      )}
+      <p>{edit.online ? "Online" : "Offline"}</p>
+      <p>{edit.pushed ? "Pushed" : "Unpushed"}</p>
+      <p>you: {userId}</p>
+      <Document
+        storedLines={edit.lines}
+        pushCommit={(data) => edit.pushCommit(data)}
+        pushFocus={(data) => edit.pushFocus(data)}
+      />
     </>
   );
 };

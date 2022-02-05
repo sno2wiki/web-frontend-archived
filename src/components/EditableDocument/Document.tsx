@@ -15,7 +15,7 @@ export const Document: React.VFC<
 > = (
   { storedLines, pushCommit, pushFocus },
 ) => {
-  const [focus, setFocus] = useState<FocusData>({ lineId: storedLines[0].id, index: 0 });
+  const [focus, setFocus] = useState<FocusData>();
   const [localLines, setLocalLines] = useState<LineType[]>(storedLines);
 
   useEffect(() => {
@@ -108,7 +108,7 @@ export const Document: React.VFC<
           key={id}
           lineId={id}
           text={text}
-          cursor={(focus.lineId === id) ? focus.index : null}
+          cursor={focus && (focus.lineId === id) ? focus.index : null}
           handleSetCursor={(index) => updateFocus(id, index)}
           handleMoveCursor={(index, direction) => handleMoveCursor(id, index, direction)}
           handleInsert={(index, text) => handleInsert(id, index, text)}

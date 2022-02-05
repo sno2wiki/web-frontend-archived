@@ -59,11 +59,24 @@ export const useSendFocus = (
     if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
 
     focusTimeoutRef.current = setTimeout(() => {
-      if (ws) ws.send(JSON.stringify({ method: "SEND_FOCUS", focus }));
+      if (ws) ws.send(JSON.stringify({ method: "PUSH_FOCUS", focus }));
     }, 100);
   }, [focus, ws]);
 
   return { setFocus: (data) => setFocus({ data, userId }) };
+};
+
+export const useSendAuth = (
+  ws: WebSocket | undefined,
+  userId: string,
+) => {
+  useEffect(() => {
+    if (ws) {
+      ws.send(JSON.stringify({ method: "PUSH_AUTH", userId }));
+    }
+  }, [userId, ws]);
+
+  return;
 };
 
 export const useStrongWebSocket = (
@@ -116,17 +129,13 @@ export const useStrongWebSocket = (
 
 export const useEditDocument = (
   { documentId, userId }: { documentId: string; userId: string; },
-):
-  | { ready: false; }
-  | {
-    ready: true;
-    online: boolean;
-    pushed: boolean;
-    lines: LineType[];
-    pushCommit(data: CommitData): void;
-    pushFocus(data: FocusData): void;
-  } =>
-{
+): {
+  online: boolean;
+  pushed: boolean;
+  lines: LineType[];
+  pushCommit(data: CommitData): void;
+  pushFocus(data: FocusData): void;
+} => {
   const [lines, setLines] = useState<{ id: string; text: string; }[]>([]);
 
   const [ws, online] = useStrongWebSocket(
@@ -144,15 +153,13 @@ export const useEditDocument = (
   );
   const { addCommit, clearCommits, pushed } = useSendCommits(ws, userId);
   const { setFocus } = useSendFocus(ws, userId);
+  useSendAuth(ws, userId);
 
-  return lines.length > 0
-    ? {
-      ready: true,
-      online,
-      pushed,
-      lines,
-      pushCommit: (data) => addCommit(data),
-      pushFocus: (data) => setFocus(data),
-    }
-    : { ready: false };
+  return {
+    online,
+    pushed,
+    lines,
+    pushCommit: (data) => addCommit(data),
+    pushFocus: (data) => setFocus(data),
+  };
 };
