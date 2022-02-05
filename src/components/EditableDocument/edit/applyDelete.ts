@@ -1,9 +1,9 @@
 import { deleteText } from "./deleteText";
 
 export const applyDelete = (
-  previous: { id: string; text: string; }[],
+  previous: LineType[],
   payload: { lineId: string; index: number; },
-): { id: string; text: string; }[] => {
+): LineType[] => {
   const targetIndex = previous.findIndex(({ id }) => id === payload.lineId);
   if (targetIndex === -1) return previous;
 
@@ -14,3 +14,4 @@ export const applyDelete = (
   };
   return next;
 };
+import { LineType } from "../types";

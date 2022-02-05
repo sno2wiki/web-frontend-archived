@@ -1,9 +1,9 @@
 import { insertText } from "./insertText";
 
 export const applyInsert = (
-  previous: { id: string; text: string; }[],
+  previous: LineType[],
   payload: { lineId: string; index: number; text: string; },
-): { id: string; text: string; }[] => {
+): LineType[] => {
   const targetIndex = previous.findIndex(({ id }) => id === payload.lineId);
   if (targetIndex === -1) return previous;
 
@@ -14,3 +14,4 @@ export const applyInsert = (
   };
   return next;
 };
+import { LineType } from "../types";

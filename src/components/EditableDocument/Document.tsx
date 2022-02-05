@@ -4,15 +4,19 @@ import { createLineId } from "~/common/generateId";
 
 import { applyBreak, applyDelete, applyFold, applyInsert } from "./edit";
 import { Line } from "./Line";
-import { CommitData } from "./useEditDocument";
+import { CommitData, LineType } from "./types";
 
 export const Document: React.VFC<
-  { storedLines: { id: string; text: string; }[]; pushCommit(data: CommitData): void; }
+  {
+    storedLines: LineType[];
+    pushCommit(data: CommitData): void;
+    pushFocus(focus: { lineId: string; index: number; }): void;
+  }
 > = (
   { storedLines, pushCommit },
 ) => {
-  const [cursor, setCursor] = useState<{ lineId: string; index: number; }>();
-  const [localLines, setLocalLines] = useState<{ id: string; text: string; }[]>(storedLines);
+  const [cursor, setCursor] = useState<{ lineId: string; index: number; }>({ lineId: storedLines[0].id, index: 0 });
+  const [localLines, setLocalLines] = useState<LineType[]>(storedLines);
 
   useEffect(() => {
     setLocalLines(storedLines);

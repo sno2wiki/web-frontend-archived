@@ -1,7 +1,7 @@
 export const applyFold = (
-  previous: { id: string; text: string; }[],
+  previous: LineType[],
   payload: { lineId: string; },
-): { id: string; text: string; }[] => {
+): LineType[] => {
   const targetindex = previous.findIndex(({ id }) => id === payload.lineId);
   if (targetindex === -1) return previous;
 
@@ -11,3 +11,4 @@ export const applyFold = (
     ...previous.slice(targetindex + 1),
   ];
 };
+import { LineType } from "../types";

@@ -3,21 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { calcEditDocumentEndpoint } from "~/common/endpoints";
 import { createCommitId } from "~/common/generateId";
 
-export type InsertPayload = { lineId: string; index: number; text: string; };
-export type BreakPayload = { lineId: string; index: number; newLineId: string; };
-export type DeletePayload = { lineId: string; index: number; };
-export type FoldPayload = { lineId: string; };
-
-export type CommitData =
-  | { method: "INSERT"; payload: InsertPayload; }
-  | { method: "BREAK"; payload: BreakPayload; }
-  | { method: "DELETE"; payload: DeletePayload; }
-  | { method: "FOLD"; payload: FoldPayload; };
-
-export type EditCommitType = {
-  commitId: string;
-  data: CommitData;
-};
+import { CommitData, EditCommitType, FocusData, LineType } from "./types";
 
 export const useEditDocument = (
   { documentId, userId }: { documentId: string; userId: string; },
@@ -27,8 +13,9 @@ export const useEditDocument = (
     ready: true;
     online: boolean;
     pushed: boolean;
-    lines: { id: string; text: string; }[];
-    pushCommit(commitData: CommitData): void;
+    lines: LineType[];
+    pushCommit(data: CommitData): void;
+    pushFocus(data: FocusData): void;
   } =>
 {
   const wsRef = useRef<WebSocket>();
@@ -80,12 +67,16 @@ export const useEditDocument = (
     }, 250);
   }, [commits]);
 
-  const pushCommit = (commitData: CommitData) => {
-    const editCommit: EditCommitType = { commitId: createCommitId(), data: commitData };
+  const pushCommit = (data: CommitData) => {
+    const editCommit: EditCommitType = { commitId: createCommitId(), data };
     setCommits((previousCommits) => [editCommit, ...previousCommits]);
   };
 
+  const pushFocus = (data: FocusData) => {
+    console.dir(data);
+  };
+
   return lines.length > 0
-    ? { ready: true, online, pushed, lines, pushCommit }
+    ? { ready: true, online, pushed, lines, pushCommit, pushFocus }
     : { ready: false };
 };

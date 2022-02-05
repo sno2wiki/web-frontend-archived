@@ -1,7 +1,9 @@
+import { LineType } from "../types";
+
 export const applyBreak = (
-  previous: { id: string; text: string; }[],
+  previous: LineType[],
   payload: { lineId: string; index: number; newLineId: string; },
-): { id: string; text: string; }[] => {
+): LineType[] => {
   const targetindex = previous.findIndex(({ id }) => id === payload.lineId);
   if (targetindex === -1) return previous;
 
