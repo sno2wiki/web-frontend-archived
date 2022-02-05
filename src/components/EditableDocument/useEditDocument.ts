@@ -5,7 +5,52 @@ import { createCommitId } from "~/common/generateId";
 
 import { Commit, CommitData, Focus, FocusData, LineType } from "./types";
 
-export const useSendFocus = (ws: WebSocket | undefined) => {
+export const useSendCommits = (
+  ws: WebSocket | undefined,
+  userId: string,
+): {
+  addCommit: (commitData: CommitData) => void;
+  clearCommits: () => void;
+  pushed: boolean;
+} => {
+  const [commits, setCommits] = useState<Commit[]>([]);
+  const [pushed, setPushed] = useState(false);
+  const commitTimeoutRef = useRef<NodeJS.Timer>();
+
+  useEffect(() => {
+    if (pushed) return;
+    if (commits.length === 0) return;
+    if (commitTimeoutRef.current) clearTimeout(commitTimeoutRef.current);
+
+    commitTimeoutRef.current = setTimeout(() => {
+      if (ws) {
+        ws.send(JSON.stringify({ method: "PUSH_COMMITS", commits }));
+        setPushed(true);
+      }
+    }, 250);
+  }, [commits, ws, pushed]);
+
+  const addCommit = (data: CommitData): void => {
+    setCommits((previous) => [...previous, { userId, data, commitId: createCommitId() }]);
+    setPushed(false);
+  };
+
+  const clearCommits = () => {
+    setCommits(() => []);
+    setPushed(false);
+  };
+
+  return {
+    addCommit,
+    clearCommits,
+    pushed,
+  };
+};
+
+export const useSendFocus = (
+  ws: WebSocket | undefined,
+  userId: string,
+): { setFocus: (focusData: FocusData) => void; } => {
   const [focus, setFocus] = useState<Focus>();
   const focusTimeoutRef = useRef<NodeJS.Timer>();
 
@@ -14,11 +59,11 @@ export const useSendFocus = (ws: WebSocket | undefined) => {
     if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
 
     focusTimeoutRef.current = setTimeout(() => {
-      if (ws) ws.send(JSON.stringify({ method: "SEND_FOCUS", payload: focus }));
+      if (ws) ws.send(JSON.stringify({ method: "SEND_FOCUS", focus }));
     }, 100);
   }, [focus, ws]);
 
-  return (newFocus: Focus) => setFocus(newFocus);
+  return { setFocus: (data) => setFocus({ data, userId }) };
 };
 
 export const useEditDocument = (
@@ -30,21 +75,18 @@ export const useEditDocument = (
     online: boolean;
     pushed: boolean;
     lines: LineType[];
-    pushCommit(data: CommitData, userId: string): void;
-    pushFocus(data: FocusData, userId: string): void;
+    pushCommit(data: CommitData): void;
+    pushFocus(data: FocusData): void;
   } =>
 {
   const wsRef = useRef<WebSocket>();
   const wsMonitorRef = useRef<NodeJS.Timer>();
   const [online, setOnline] = useState(false);
 
-  const [pushed, setPushed] = useState(false);
-  const commitTimeoutRef = useRef<NodeJS.Timer>();
-
-  const sendFocus = useSendFocus(wsRef.current);
-
   const [lines, setLines] = useState<{ id: string; text: string; }[]>([]);
-  const [commits, setCommits] = useState<Commit[]>([]);
+
+  const { addCommit, clearCommits, pushed } = useSendCommits(wsRef.current, userId);
+  const { setFocus } = useSendFocus(wsRef.current, userId);
 
   useEffect(() => {
     if (wsRef.current) wsRef.current.close();
@@ -66,29 +108,10 @@ export const useEditDocument = (
         const payload = data.payload;
 
         setLines(() => payload.lines);
-        setCommits(() => []);
-        setPushed(true);
+        clearCommits();
       }
     });
-  }, [documentId, userId, online]);
-
-  useEffect(() => {
-    if (commits.length === 0) return;
-    if (commitTimeoutRef.current) clearTimeout(commitTimeoutRef.current);
-
-    setPushed(false);
-    commitTimeoutRef.current = setTimeout(() => {
-      if (wsRef.current) {
-        wsRef.current.send(JSON.stringify({ method: "PUSH_COMMITS", payload: { commits } }));
-        setPushed(true);
-      }
-    }, 250);
-  }, [commits]);
-
-  const pushCommit = (data: CommitData, userId: string) => {
-    const commit: Commit = { commitId: createCommitId(), userId, data };
-    setCommits((previousCommits) => [...previousCommits, commit]);
-  };
+  }, [documentId, userId, online, clearCommits]);
 
   return lines.length > 0
     ? {
@@ -96,8 +119,8 @@ export const useEditDocument = (
       online,
       pushed,
       lines,
-      pushCommit,
-      pushFocus: (data: FocusData, userId: string) => sendFocus({ userId, data }),
+      pushCommit: (data) => addCommit(data),
+      pushFocus: (data) => setFocus(data),
     }
     : { ready: false };
 };

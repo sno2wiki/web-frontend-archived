@@ -21,8 +21,8 @@ export const Manager: React.VFC<{
           <p>you: {userId}</p>
           <Document
             storedLines={edit.lines}
-            pushCommit={(data) => edit.pushCommit(data, userId)}
-            pushFocus={(data) => edit.pushFocus(data, userId)}
+            pushCommit={(data) => edit.pushCommit(data)}
+            pushFocus={(data) => edit.pushFocus(data)}
           />
         </>
       )}
