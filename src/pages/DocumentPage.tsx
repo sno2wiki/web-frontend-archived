@@ -9,7 +9,6 @@ export const DocumentPage: React.VFC = () => {
 
   return (
     <div style={{ margin: "64px 64px" }}>
-      <span>{id}</span>
       {id && user && (
         <>
           <EditableDocument documentId={id} userId={user.userId} />

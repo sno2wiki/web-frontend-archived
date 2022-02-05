@@ -9,9 +9,12 @@ export const Manager: React.VFC<{
 
   return (
     <>
-      <p>{online ? "Online" : "Offline"}</p>
-      <p>{pushed ? "Pushed" : "Unpushed"}</p>
-      <p>you: {userId}</p>
+      <div style={{}}>
+        <p>{documentId}</p>
+        <p>{online ? "Online" : "Offline"}</p>
+        <p>{pushed ? "Pushed" : "Unpushed"}</p>
+        <p>you: {userId}</p>
+      </div>
       <Document
         storedLines={lines}
         focuses={focuses}
