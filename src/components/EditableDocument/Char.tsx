@@ -1,9 +1,8 @@
 import React from "react";
 
-export const Char: React.VFC<{
-  char: string;
-  onClick(positionX: "LEFTER" | "RIGHTER"): void;
-}> = ({ char, onClick }) => {
+export const Char: React.VFC<
+  { char: string; onClick(positionX: "LEFTER" | "RIGHTER"): void; }
+> = ({ char, onClick }) => {
   return (
     <span
       style={{ display: "inline-block", lineHeight: "1.5em" }}
