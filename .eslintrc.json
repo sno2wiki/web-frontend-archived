@@ -46,6 +46,7 @@
           "i": false,
           "j": false,
           "ref": false,
+          "refs": false,
           "req": false,
           "res": false,
           "prev": false
