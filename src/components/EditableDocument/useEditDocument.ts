@@ -133,20 +133,28 @@ export const useEditDocument = (
   online: boolean;
   pushed: boolean;
   lines: LineType[];
+  focuses: Focus[];
   pushCommit(data: CommitData): void;
   pushFocus(data: FocusData): void;
 } => {
-  const [lines, setLines] = useState<{ id: string; text: string; }[]>([]);
+  const [lines, setLines] = useState<LineType[]>([]);
+  const [allFocuses, setAllFocuses] = useState<Focus[]>([]);
 
   const [ws, online] = useStrongWebSocket(
     calcEditDocumentEndpoint(documentId),
     {
       onMessage(event) {
         const data = JSON.parse(event.data);
-        if (data.method === "PULL_DOCUMENT") {
-          const payload = data.payload;
-          setLines(() => payload.lines);
-          clearCommits();
+        switch (data.method) {
+          case "PULL_DOCUMENT": {
+            setLines(() => data.payload.lines);
+            clearCommits();
+            break;
+          }
+          case "SYNC_FOCUSES": {
+            setAllFocuses(data.focuses);
+            break;
+          }
         }
       },
     },
@@ -159,6 +167,7 @@ export const useEditDocument = (
     online,
     pushed,
     lines,
+    focuses: allFocuses,
     pushCommit: (data) => addCommit(data),
     pushFocus: (data) => setFocus(data),
   };
