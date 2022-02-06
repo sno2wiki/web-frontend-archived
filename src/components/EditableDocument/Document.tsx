@@ -17,35 +17,73 @@ export const Document: React.VFC<
 ) => {
   const [localLines, setLocalLines] = useState<LineType[]>(storedLines);
 
-  const [focus, setFocus] = useState<{ lineId: string; index: number; }>();
+  const [focus, setFocus] = useState<
+    { lineId: string; index: number; }
+  >();
   const [range, setRange] = useState<
-    { from?: { lineId: string; index: number; }; to?: { lineId: string; index: number; }; }
-  >({});
+    { from: { lineId: string; index: number; }; to: { lineId: string; index: number; }; } | null
+  >(null);
 
-  const selecting = useMemo(() => "from" in range && !("to" in range), [range]);
   const rng = useMemo<
     [[number, number], [number, number]] | undefined
   >(() => {
-    if (!range.from || !range.to) return;
+    if (!range) return;
     if (range.from.lineId === range.to.lineId && range.from.index === range.to.index) return;
     const { from, to } = range;
     const fi = localLines.findIndex(({ id }) => id === from.lineId);
     const ti = localLines.findIndex(({ id }) => id === to.lineId);
-    return fi < ti ? [[fi, from.index], [ti, to.index]] : [[ti, to.index], [fi, from.index]];
+    if (fi === ti) return [[fi, Math.min(from.index, to.index)], [fi, Math.max(from.index, to.index)]];
+    else return fi < ti ? [[fi, from.index], [ti, to.index]] : [[ti, to.index], [fi, from.index]];
   }, [localLines, range]);
 
   useEffect(() => {
     setLocalLines(storedLines);
   }, [storedLines]);
 
-  const handleRangeStart = (lineId: string, index: number) => {
-    setRange(() => ({ from: { lineId, index } }));
-    setFocus(() => ({ lineId, index }));
-  };
-  const handleRangeEnd = (lineId: string, index: number) => {
-    setRange(({ from }) => ({ from, to: { lineId, index } }));
-    setFocus(() => ({ lineId, index }));
-  };
+  useEffect(() => {
+    const selection = document.getSelection();
+    const handleSelection = (e) => {
+      if (!selection) return;
+
+      const { anchorNode, focusNode, anchorOffset: fromOffset, focusOffset: toOffset } = selection;
+      const fromWordBlock = anchorNode?.parentElement?.getAttribute("char-index");
+      const toWordBlock = focusNode?.parentElement?.getAttribute("char-index");
+
+      if (!fromWordBlock || !toWordBlock) return;
+
+      const [fromLineId, fromIndexString] = fromWordBlock.split("-");
+      const fromLineIndex = localLines.findIndex(({ id }) => id === fromLineId);
+      const fromIndex = Number.parseInt(fromIndexString, 10);
+
+      const [toLineId, toIndexString] = toWordBlock.split("-");
+      const toLineIndex = localLines.findIndex(({ id }) => id === toLineId);
+      const toIndex = Number.parseInt(toIndexString, 10);
+
+      if (fromIndex === -1 || toIndex === -1) return;
+
+      if (fromLineId === toLineId) {
+        if (fromIndex == toIndex) {
+          setRange(null);
+          setFocus({ lineId: toLineId, index: toIndex });
+        } else if (fromIndex < toIndex) {
+          setRange({
+            from: { lineId: fromLineId, index: fromIndex + fromOffset },
+            to: { lineId: toLineId, index: toIndex + toOffset - 1 },
+          });
+          setFocus({ lineId: toLineId, index: toIndex + toOffset - 1 });
+        } else {
+          setRange({
+            from: { lineId: fromLineId, index: fromIndex + fromOffset - 1 },
+            to: { lineId: toLineId, index: toIndex + toOffset },
+          });
+          setFocus({ lineId: toLineId, index: toIndex + toOffset - 1 });
+        }
+      }
+    };
+
+    document.addEventListener("selectionchange", handleSelection);
+    return () => document.removeEventListener("selectionchange", handleSelection);
+  }, []);
 
   const updateFocus = (lineId: string, index: number) => {
     setFocus({ lineId, index });
@@ -133,7 +171,6 @@ export const Document: React.VFC<
           key={lineId}
           lineId={lineId}
           text={text}
-          selecting={selecting}
           range={(rng && rng[0][0] <= i && i <= rng[1][0])
             ? [
               rng[0][0] === i ? rng[0][1] : 1,
@@ -147,8 +184,6 @@ export const Document: React.VFC<
           handleDelete={(payload) => handleDelete(lineId, payload)}
           handleBreak={(payload) => handleBreak(lineId, payload)}
           handleFold={() => i > 0 && handleFold(lineId)}
-          setRangeStart={(index) => handleRangeStart(lineId, index)}
-          setRangeEnd={(index) => handleRangeEnd(lineId, index)}
         />
       ))}
     </div>
