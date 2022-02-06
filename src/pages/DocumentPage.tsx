@@ -8,7 +8,7 @@ export const DocumentPage: React.VFC = () => {
   const user = useAuth();
 
   return (
-    <div style={{ margin: "64px 64px" }}>
+    <div>
       {id && user && (
         <>
           <EditableDocument documentId={id} userId={user.userId} />

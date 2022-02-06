@@ -1,3 +1,4 @@
+import { css, cx } from "@emotion/css";
 import React, { Fragment, useMemo, useState } from "react";
 
 import { parser } from "./parser";
@@ -25,13 +26,10 @@ export const Line: React.VFC<{
   handleFold,
   handleMoveCursor,
 }) => {
-  const chars = useMemo(
-    () => [{ char: "", index: 0 }, ...[...text].map((char, index) => ({ char, index: index + 1 }))],
-    [text],
-  );
-
   const parsed = useMemo(() => parser(text), [text]);
-  const [rects, setRects] = useState<{ left: number; top: number; width: number; height: number; }[]>([]);
+  const [rects, setRects] = useState<
+    { left: number; top: number; width: number; height: number; }[]
+  >([]);
 
   const handlePressBackspace = (index: number) => {
     if (cursor === 0) handleFold();
@@ -40,7 +38,7 @@ export const Line: React.VFC<{
 
   return (
     <div id={lineId} style={{ position: "relative" }}>
-      {(cursor !== null && cursor === 0) && (
+      {cursor !== null && cursor === 0 && (
         <div
           style={{
             position: "absolute",
@@ -52,7 +50,7 @@ export const Line: React.VFC<{
           }}
         />
       )}
-      {(cursor !== null && 0 < cursor && rects[cursor - 1]) && (
+      {cursor !== null && 0 < cursor && rects[cursor - 1] && (
         <div
           style={{
             position: "absolute",
@@ -64,16 +62,15 @@ export const Line: React.VFC<{
           }}
         />
       )}
-      <p
-        style={{
-          whiteSpace: "pre-wrap",
-          userSelect: "none",
-          position: "relative",
-          zIndex: 1,
-        }}
-      >
+      <p className={css({ position: "relative", userSelect: "none", zIndex: 1, whiteSpace: "pre-wrap" })}>
         {parsed.map(({ Wrapper, offset: index, text }) => (
-          <Wrapper key={`${lineId}-${index}`}>
+          <Wrapper
+            key={`${lineId}-part-${index}`}
+            className={css({
+              display: "inline",
+              userSelect: "none",
+            })}
+          >
             {[...text].map((char, charIndex) => (
               <Fragment key={`${lineId}-${index + charIndex}`}>
                 <span
@@ -90,12 +87,14 @@ export const Line: React.VFC<{
                       return rects;
                     });
                   }}
-                  style={{
-                    userSelect: "text",
-                    background: (range && range[0] <= index + charIndex && index + charIndex <= range[1])
-                      ? "#F008"
-                      : undefined,
-                  }}
+                  className={cx(
+                    css({ userSelect: "text" }),
+                    /* css({ borderInlineEnd: "1px solid black" }) */
+                    {
+                      [css({ background: "#F008" })]: range && range[0] <= index + charIndex
+                        && index + charIndex <= range[1],
+                    },
+                  )}
                 >
                   {char}
                 </span>

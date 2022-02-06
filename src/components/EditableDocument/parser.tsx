@@ -1,22 +1,25 @@
+import { css, cx } from "@emotion/css";
 import React from "react";
 
-export const Plain: React.FC = ({ children }) => (
-  <span style={{ display: "inline", userSelect: "none", fontSize: "1rem" }}>
+export const Plain: React.FC<{ className?: string; }> = ({ className, children }) => (
+  <span className={cx(className, css({ fontWeight: "bold" }))}>
     {children}
   </span>
 );
-export const Bold: React.FC = ({ children }) => (
-  <strong style={{ display: "inline", userSelect: "none", fontSize: "1.75rem", fontWeight: "bold" }}>
+export const Bold: React.FC<{ className?: string; }> = ({ className, children }) => (
+  <strong className={cx(className, css({ fontWeight: "bold" }))}>
     {children}
   </strong>
 );
-export const Link: React.FC = ({ children }) => (
-  <i style={{ display: "inline", userSelect: "none", fontSize: "1rem", "textDecoration": "underline" }}>
+export const Link: React.FC<{ className?: string; }> = ({ className, children }) => (
+  <i className={cx(className, css({ textDecoration: "underline" }))}>
     {children}
   </i>
 );
 
-export const parser = (sentence: string): { Wrapper: React.FC; text: string; offset: number; }[] => {
+export const parser = (
+  sentence: string,
+): { Wrapper: React.FC<{ className?: string; }>; text: string; offset: number; }[] => {
   return [
     { Wrapper: Plain, offset: 1, text: sentence.slice(0, 2) },
     { Wrapper: Bold, offset: 3, text: sentence.slice(2, 4) },

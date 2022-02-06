@@ -31,7 +31,10 @@ export const useSendCommits = (
   }, [commits, ws, pushed]);
 
   const addCommit = (data: CommitData): void => {
-    setCommits((previous) => [...previous, { userId, data, commitId: createCommitId() }]);
+    setCommits((previous) => [
+      ...previous,
+      { userId, data, commitId: createCommitId() },
+    ]);
     setPushed(false);
   };
 
@@ -66,10 +69,7 @@ export const useSendFocus = (
   return { setFocus: (data) => setFocus({ data, userId }) };
 };
 
-export const useSendAuth = (
-  ws: WebSocket | undefined,
-  userId: string,
-) => {
+export const useSendAuth = (ws: WebSocket | undefined, userId: string) => {
   useEffect(() => {
     if (ws) {
       ws.send(JSON.stringify({ method: "PUSH_AUTH", userId }));
@@ -120,16 +120,22 @@ export const useStrongWebSocket = (
       if (onError) onError(event);
     });
     wsMonitorRef.current = setInterval(() => {
-      if (wsRef.current && wsRef.current.readyState !== WebSocket.OPEN) setOnline(false);
+      if (wsRef.current && wsRef.current.readyState !== WebSocket.OPEN) {
+        setOnline(false);
+      }
     }, 250);
   }, [online, endpoint, onMessage, onOpen, onClose, onError]);
 
   return [wsRef.current, online];
 };
 
-export const useEditDocument = (
-  { documentId, userId }: { documentId: string; userId: string; },
-): {
+export const useEditDocument = ({
+  documentId,
+  userId,
+}: {
+  documentId: string;
+  userId: string;
+}): {
   online: boolean;
   pushed: boolean;
   lines: LineType[];

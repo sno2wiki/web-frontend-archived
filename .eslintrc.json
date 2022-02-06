@@ -24,6 +24,7 @@
   },
   "rules": {
     "prefer-spread": 2,
+    "prefer-template": 2,
     "no-useless-rename": [2],
     "object-shorthand": [2, "always"],
     /* unused-imports */

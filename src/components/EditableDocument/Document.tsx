@@ -1,3 +1,4 @@
+import { css } from "@emotion/css";
 import React, { useEffect, useState } from "react";
 
 import { createLineId } from "~/common/generateId";
@@ -6,19 +7,17 @@ import { applyBreak, applyDelete, applyFold, applyInsert } from "./edit";
 import { Line } from "./Line";
 import { CommitData, FocusData, LineType } from "./types";
 
-export const Document: React.VFC<
-  {
-    storedLines: LineType[];
-    pushCommit(data: CommitData): void;
-    pushFocus(data: FocusData): void;
-  }
-> = (
-  { storedLines, pushCommit, pushFocus },
-) => {
+export const Document: React.VFC<{
+  storedLines: LineType[];
+  pushCommit(data: CommitData): void;
+  pushFocus(data: FocusData): void;
+}> = ({ storedLines, pushCommit, pushFocus }) => {
   const [localLines, setLocalLines] = useState<LineType[]>(storedLines);
 
   const [focus, setFocus] = useState<{ lineId: string; index: number; }>();
-  const [range, setRange] = useState<[[number, number], [number, number]] | null>(null);
+  const [range, setRange] = useState<
+    [[number, number], [number, number]] | null
+  >(null);
 
   useEffect(() => {
     setLocalLines(storedLines);
@@ -29,7 +28,12 @@ export const Document: React.VFC<
     const handleSelection = () => {
       if (!selection) return;
 
-      const { anchorNode, focusNode, anchorOffset: fromOffset, focusOffset: toOffset } = selection;
+      const {
+        anchorNode,
+        focusNode,
+        anchorOffset: fromOffset,
+        focusOffset: toOffset,
+      } = selection;
       const fromWordBlock = anchorNode?.parentElement?.getAttribute("char-index");
       const toWordBlock = focusNode?.parentElement?.getAttribute("char-index");
 
@@ -52,17 +56,29 @@ export const Document: React.VFC<
           setRange(null);
           setFocus({ lineId: toLineId, index: toIndex });
         } else if (fromIndex < toIndex) {
-          setRange([[fromLineIndex, fromIndex + fromOffset], [toLineIndex, toIndex + toOffset - 1]]);
+          setRange([
+            [fromLineIndex, fromIndex + fromOffset],
+            [toLineIndex, toIndex + toOffset - 1],
+          ]);
           setFocus({ lineId: toLineId, index: toIndex + toOffset - 1 });
         } else {
-          setRange([[toLineIndex, toIndex + toOffset], [fromLineIndex, fromIndex + fromOffset - 1]]);
+          setRange([
+            [toLineIndex, toIndex + toOffset],
+            [fromLineIndex, fromIndex + fromOffset - 1],
+          ]);
           setFocus({ lineId: toLineId, index: toIndex + toOffset - 1 });
         }
       } else if (fromLineIndex < toLineIndex) {
-        setRange([[fromLineIndex, fromIndex + fromOffset], [toLineIndex, toIndex + toOffset - 1]]);
+        setRange([
+          [fromLineIndex, fromIndex + fromOffset],
+          [toLineIndex, toIndex + toOffset - 1],
+        ]);
         setFocus({ lineId: toLineId, index: toIndex + toOffset - 1 });
       } else {
-        setRange([[toLineIndex, toIndex + toOffset], [fromLineIndex, fromIndex + fromOffset - 1]]);
+        setRange([
+          [toLineIndex, toIndex + toOffset],
+          [fromLineIndex, fromIndex + fromOffset - 1],
+        ]);
         setFocus({ lineId: toLineId, index: toIndex + toOffset - 1 });
       }
     };
@@ -76,7 +92,11 @@ export const Document: React.VFC<
     pushFocus({ lineId, index });
   };
 
-  const handleMoveCursor = (lineId: string, index: number, direction: "UP" | "DOWN" | "LEFT" | "RIGHT") => {
+  const handleMoveCursor = (
+    lineId: string,
+    index: number,
+    direction: "UP" | "DOWN" | "LEFT" | "RIGHT",
+  ) => {
     const baseIndex = localLines.findIndex((line) => line.id === lineId);
     if (baseIndex === -1) return;
 
@@ -108,14 +128,20 @@ export const Document: React.VFC<
       }
       case "LEFT": {
         if (0 < baseIndex && index === 0) {
-          updateFocus(localLines[baseIndex - 1].id, localLines[baseIndex - 1].text.length);
+          updateFocus(
+            localLines[baseIndex - 1].id,
+            localLines[baseIndex - 1].text.length,
+          );
         } else {
           updateFocus(localLines[baseIndex].id, index - 1);
         }
         break;
       }
       case "RIGHT": {
-        if (baseIndex < localLines.length - 1 && index === localLines[baseIndex].text.length) {
+        if (
+          baseIndex < localLines.length - 1
+          && index === localLines[baseIndex].text.length
+        ) {
           updateFocus(localLines[baseIndex + 1].id, 0);
         } else {
           updateFocus(localLines[baseIndex].id, index + 1);
@@ -145,22 +171,28 @@ export const Document: React.VFC<
 
   const handleFold = (lineId: string) => {
     const movedToIndex = localLines.findIndex(({ id }) => id === lineId) - 1;
-    updateFocus(localLines[movedToIndex].id, localLines[movedToIndex].text.length);
+    updateFocus(
+      localLines[movedToIndex].id,
+      localLines[movedToIndex].text.length,
+    );
     setLocalLines((previous) => applyFold(previous, { lineId }));
     pushCommit({ method: "FOLD", payload: { lineId } });
   };
 
   return (
-    <div style={{ position: "relative" }}>
+    <div className={css({ position: "relative" })}>
       {localLines.map(({ id: lineId, text }, i) => (
         <Line
           key={lineId}
           lineId={lineId}
           text={text}
-          range={(range && range[0][0] <= i && i <= range[1][0])
-            ? [range[0][0] === i ? range[0][1] : 1, range[1][0] === i ? range[1][1] : text.length]
+          range={range && range[0][0] <= i && i <= range[1][0]
+            ? [
+              range[0][0] === i ? range[0][1] : 1,
+              range[1][0] === i ? range[1][1] : text.length,
+            ]
             : null}
-          cursor={focus && (focus.lineId === lineId) ? focus.index : null}
+          cursor={focus && focus.lineId === lineId ? focus.index : null}
           handleSetCursor={(index) => updateFocus(lineId, index)}
           handleMoveCursor={(index, direction) => handleMoveCursor(lineId, index, direction)}
           handleInsert={(index, text) => handleInsert(lineId, index, text)}
