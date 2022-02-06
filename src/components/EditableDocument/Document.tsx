@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import { createLineId } from "~/common/generateId";
 
@@ -15,12 +15,37 @@ export const Document: React.VFC<
 > = (
   { storedLines, pushCommit, pushFocus },
 ) => {
-  const [focus, setFocus] = useState<FocusData>();
   const [localLines, setLocalLines] = useState<LineType[]>(storedLines);
+
+  const [focus, setFocus] = useState<{ lineId: string; index: number; }>();
+  const [range, setRange] = useState<
+    { from?: { lineId: string; index: number; }; to?: { lineId: string; index: number; }; }
+  >({});
+
+  const selecting = useMemo(() => "from" in range && !("to" in range), [range]);
+  const rng = useMemo<
+    [[number, number], [number, number]] | undefined
+  >(() => {
+    if (!range.from || !range.to) return;
+    if (range.from.lineId === range.to.lineId && range.from.index === range.to.index) return;
+    const { from, to } = range;
+    const fi = localLines.findIndex(({ id }) => id === from.lineId);
+    const ti = localLines.findIndex(({ id }) => id === to.lineId);
+    return fi < ti ? [[fi, from.index], [ti, to.index]] : [[ti, to.index], [fi, from.index]];
+  }, [localLines, range]);
 
   useEffect(() => {
     setLocalLines(storedLines);
   }, [storedLines]);
+
+  const handleRangeStart = (lineId: string, index: number) => {
+    setRange(() => ({ from: { lineId, index } }));
+    setFocus(() => ({ lineId, index }));
+  };
+  const handleRangeEnd = (lineId: string, index: number) => {
+    setRange(({ from }) => ({ from, to: { lineId, index } }));
+    setFocus(() => ({ lineId, index }));
+  };
 
   const updateFocus = (lineId: string, index: number) => {
     setFocus({ lineId, index });
@@ -102,19 +127,28 @@ export const Document: React.VFC<
   };
 
   return (
-    <div>
-      {localLines.map(({ id, text }, i) => (
+    <div style={{ userSelect: "text", position: "relative" }}>
+      {localLines.map(({ id: lineId, text }, i) => (
         <Line
-          key={id}
-          lineId={id}
+          key={lineId}
+          lineId={lineId}
           text={text}
-          cursor={focus && (focus.lineId === id) ? focus.index : null}
-          handleSetCursor={(index) => updateFocus(id, index)}
-          handleMoveCursor={(index, direction) => handleMoveCursor(id, index, direction)}
-          handleInsert={(index, text) => handleInsert(id, index, text)}
-          handleDelete={(payload) => handleDelete(id, payload)}
-          handleBreak={(payload) => handleBreak(id, payload)}
-          handleFold={() => i > 0 && handleFold(id)}
+          selecting={selecting}
+          range={(rng && rng[0][0] <= i && i <= rng[1][0])
+            ? [
+              rng[0][0] === i ? rng[0][1] : 1,
+              rng[1][0] === i ? rng[1][1] : text.length,
+            ]
+            : null}
+          cursor={focus && (focus.lineId === lineId) ? focus.index : null}
+          handleSetCursor={(index) => updateFocus(lineId, index)}
+          handleMoveCursor={(index, direction) => handleMoveCursor(lineId, index, direction)}
+          handleInsert={(index, text) => handleInsert(lineId, index, text)}
+          handleDelete={(payload) => handleDelete(lineId, payload)}
+          handleBreak={(payload) => handleBreak(lineId, payload)}
+          handleFold={() => i > 0 && handleFold(lineId)}
+          setRangeStart={(index) => handleRangeStart(lineId, index)}
+          setRangeEnd={(index) => handleRangeEnd(lineId, index)}
         />
       ))}
     </div>

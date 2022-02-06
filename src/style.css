@@ -4,3 +4,6 @@ body {
   user-select: none;
 }
 
+::selection{
+  background-color: #00F8;
+}
