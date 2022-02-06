@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { createLineId } from "~/common/generateId";
 
@@ -17,24 +17,8 @@ export const Document: React.VFC<
 ) => {
   const [localLines, setLocalLines] = useState<LineType[]>(storedLines);
 
-  const [focus, setFocus] = useState<
-    { lineId: string; index: number; }
-  >();
-  const [range, setRange] = useState<
-    { from: { lineId: string; index: number; }; to: { lineId: string; index: number; }; } | null
-  >(null);
-
-  const rng = useMemo<
-    [[number, number], [number, number]] | undefined
-  >(() => {
-    if (!range) return;
-    if (range.from.lineId === range.to.lineId && range.from.index === range.to.index) return;
-    const { from, to } = range;
-    const fi = localLines.findIndex(({ id }) => id === from.lineId);
-    const ti = localLines.findIndex(({ id }) => id === to.lineId);
-    if (fi === ti) return [[fi, Math.min(from.index, to.index)], [fi, Math.max(from.index, to.index)]];
-    else return fi < ti ? [[fi, from.index], [ti, to.index]] : [[ti, to.index], [fi, from.index]];
-  }, [localLines, range]);
+  const [focus, setFocus] = useState<{ lineId: string; index: number; }>();
+  const [range, setRange] = useState<[[number, number], [number, number]] | null>(null);
 
   useEffect(() => {
     setLocalLines(storedLines);
@@ -42,7 +26,7 @@ export const Document: React.VFC<
 
   useEffect(() => {
     const selection = document.getSelection();
-    const handleSelection = (e) => {
+    const handleSelection = () => {
       if (!selection) return;
 
       const { anchorNode, focusNode, anchorOffset: fromOffset, focusOffset: toOffset } = selection;
@@ -52,32 +36,32 @@ export const Document: React.VFC<
       if (!fromWordBlock || !toWordBlock) return;
 
       const [fromLineId, fromIndexString] = fromWordBlock.split("-");
-      const fromLineIndex = localLines.findIndex(({ id }) => id === fromLineId);
       const fromIndex = Number.parseInt(fromIndexString, 10);
+      const fromLineIndex = localLines.findIndex(({ id }) => id === fromLineId);
 
       const [toLineId, toIndexString] = toWordBlock.split("-");
-      const toLineIndex = localLines.findIndex(({ id }) => id === toLineId);
       const toIndex = Number.parseInt(toIndexString, 10);
+      const toLineIndex = localLines.findIndex(({ id }) => id === toLineId);
 
-      if (fromIndex === -1 || toIndex === -1) return;
+      if (fromLineIndex === -1 || toLineIndex === -1) return;
 
-      if (fromLineId === toLineId) {
+      if (fromLineIndex === toLineIndex) {
         if (fromIndex == toIndex) {
           setRange(null);
           setFocus({ lineId: toLineId, index: toIndex });
         } else if (fromIndex < toIndex) {
-          setRange({
-            from: { lineId: fromLineId, index: fromIndex + fromOffset },
-            to: { lineId: toLineId, index: toIndex + toOffset - 1 },
-          });
+          setRange([[fromLineIndex, fromIndex + fromOffset], [toLineIndex, toIndex + toOffset - 1]]);
           setFocus({ lineId: toLineId, index: toIndex + toOffset - 1 });
         } else {
-          setRange({
-            from: { lineId: fromLineId, index: fromIndex + fromOffset - 1 },
-            to: { lineId: toLineId, index: toIndex + toOffset },
-          });
+          setRange([[toLineIndex, toIndex + toOffset], [fromLineIndex, fromIndex + fromOffset - 1]]);
           setFocus({ lineId: toLineId, index: toIndex + toOffset - 1 });
         }
+      } else if (fromLineIndex < toLineIndex) {
+        setRange([[fromLineIndex, fromIndex + fromOffset], [toLineIndex, toIndex + toOffset - 1]]);
+        setFocus({ lineId: toLineId, index: toIndex + toOffset - 1 });
+      } else {
+        setRange([[toLineIndex, toIndex + toOffset], [fromLineIndex, fromIndex + fromOffset - 1]]);
+        setFocus({ lineId: toLineId, index: toIndex + toOffset - 1 });
       }
     };
 
@@ -171,10 +155,10 @@ export const Document: React.VFC<
           key={lineId}
           lineId={lineId}
           text={text}
-          range={(rng && rng[0][0] <= i && i <= rng[1][0])
+          range={(range && range[0][0] <= i && i <= range[1][0])
             ? [
-              rng[0][0] === i ? rng[0][1] : 1,
-              rng[1][0] === i ? rng[1][1] : text.length,
+              range[0][0] === i ? range[0][1] : 1,
+              range[1][0] === i ? range[1][1] : text.length,
             ]
             : null}
           cursor={focus && (focus.lineId === lineId) ? focus.index : null}
