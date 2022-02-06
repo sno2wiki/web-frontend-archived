@@ -6,7 +6,6 @@ export const Line: React.VFC<{
   lineId: string;
   text: string;
   cursor: number | null;
-  selecting: boolean;
   range: null | [number, number];
   handleSetCursor(index: number): void;
   handleMoveCursor(index: number, type: "UP" | "DOWN" | "LEFT" | "RIGHT"): void;
@@ -14,23 +13,17 @@ export const Line: React.VFC<{
   handleBreak(index: number): void;
   handleFold(): void;
   handleDelete(index: number): void;
-
-  setRangeStart(charIndex: number /* left: number, top: number*/): void;
-  setRangeEnd(charIndex: number /* left: number, top: number */): void;
 }> = ({
   lineId,
   text,
   cursor,
+  range,
   handleSetCursor,
   handleBreak,
   handleInsert,
   handleDelete,
   handleFold,
   handleMoveCursor,
-  setRangeEnd,
-  setRangeStart,
-  selecting,
-  range,
 }) => {
   const chars = useMemo(
     () => [{ char: "", index: 0 }, ...[...text].map((char, index) => ({ char, index: index + 1 }))],
@@ -46,42 +39,39 @@ export const Line: React.VFC<{
   };
 
   return (
-    <div
-      id={lineId}
-      style={{ position: "relative" }}
-      onMouseDown={(event) => {
-        const offsetX = event.nativeEvent.offsetX, offsetY = event.nativeEvent.offsetY;
-        const index = rects.findIndex(
-          ({ left, width, top, height }) =>
-            left <= offsetX && offsetX < left + width && top <= offsetY && offsetY < top + height,
-        );
-        if (index === -1) return;
-        setRangeStart(index + 1);
-      }}
-      onMouseUp={(event) => {
-        const offsetX = event.nativeEvent.offsetX, offsetY = event.nativeEvent.offsetY;
-        const index = rects.findIndex(
-          ({ left, width, top, height }) =>
-            left <= offsetX && offsetX < left + width && top <= offsetY && offsetY < top + height,
-        );
-        if (index === -1) return;
-        setRangeEnd(index + 1);
-      }}
-    >
-      {cursor && rects[cursor - 1] && (
+    <div id={lineId} style={{ position: "relative" }}>
+      {(cursor !== null && cursor === 0) && (
+        <div
+          style={{
+            position: "absolute",
+            zIndex: 0,
+            top: rects[0].top,
+            left: 0,
+            height: rects[0].height,
+            borderLeft: "2px solid #0008",
+          }}
+        />
+      )}
+      {(cursor !== null && 0 < cursor && rects[cursor - 1]) && (
         <div
           style={{
             position: "absolute",
             zIndex: 0,
             top: rects[cursor - 1].top,
-            left: rects[cursor - 1].left + rects[cursor - 1].width,
+            left: rects[cursor - 1].left + rects[cursor - 1].width - 1,
             height: rects[cursor - 1].height,
-            borderLeft: "1px solid black",
+            borderLeft: "2px solid #0008",
           }}
-        >
-        </div>
+        />
       )}
-      <p style={{ cursor: "text", lineHeight: "1.5em", position: "relative", zIndex: 1 }}>
+      <p
+        style={{
+          whiteSpace: "pre-wrap",
+          userSelect: "none",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
         {parsed.map(({ Wrapper, offset: index, text }) => (
           <Wrapper key={`${lineId}-${index}`}>
             {[...text].map((char, charIndex) => (
@@ -101,7 +91,7 @@ export const Line: React.VFC<{
                     });
                   }}
                   style={{
-                    display: "inline-block",
+                    userSelect: "text",
                     background: (range && range[0] <= index + charIndex && index + charIndex <= range[1])
                       ? "#F008"
                       : undefined,

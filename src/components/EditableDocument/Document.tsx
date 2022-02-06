@@ -33,6 +33,8 @@ export const Document: React.VFC<
       const fromWordBlock = anchorNode?.parentElement?.getAttribute("char-index");
       const toWordBlock = focusNode?.parentElement?.getAttribute("char-index");
 
+      //  console.log(anchorNode?.nodeName, focusNode?.nodeName);
+
       if (!fromWordBlock || !toWordBlock) return;
 
       const [fromLineId, fromIndexString] = fromWordBlock.split("-");
@@ -67,7 +69,7 @@ export const Document: React.VFC<
 
     document.addEventListener("selectionchange", handleSelection);
     return () => document.removeEventListener("selectionchange", handleSelection);
-  }, []);
+  }, [localLines]);
 
   const updateFocus = (lineId: string, index: number) => {
     setFocus({ lineId, index });
@@ -149,17 +151,14 @@ export const Document: React.VFC<
   };
 
   return (
-    <div style={{ userSelect: "text", position: "relative" }}>
+    <div style={{ position: "relative" }}>
       {localLines.map(({ id: lineId, text }, i) => (
         <Line
           key={lineId}
           lineId={lineId}
           text={text}
           range={(range && range[0][0] <= i && i <= range[1][0])
-            ? [
-              range[0][0] === i ? range[0][1] : 1,
-              range[1][0] === i ? range[1][1] : text.length,
-            ]
+            ? [range[0][0] === i ? range[0][1] : 1, range[1][0] === i ? range[1][1] : text.length]
             : null}
           cursor={focus && (focus.lineId === lineId) ? focus.index : null}
           handleSetCursor={(index) => updateFocus(lineId, index)}
